@@ -60,10 +60,8 @@ The app makes use of text recognition, keyword detection and chronological order
 * Note explorer
 
 **Flow Navigation** (Screen to Screen)
-
-* View post
-* Create post
-* View user profile
+* Search bar
+* Note viewing
 
 ## Wireframes
 ![](https://i.imgur.com/tenvHf7.png)
