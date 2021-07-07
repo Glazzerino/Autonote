@@ -38,8 +38,7 @@ The app makes use of text recognition, keyword detection and chronological order
 
 **Optional Nice-to-have Stories**
 
-* A topic-centric discovery page
-* 
+* Note exportation to dekstop and e-reader-friendly formats
 
 ### 2. Screen Archetypes
 
