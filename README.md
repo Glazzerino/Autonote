@@ -10,7 +10,7 @@ Autonote - FBU project
 Autonote is a note-taking, note-scanning application with students in mind. 
 
 ### Description
-The app makes use of text recognition, keyword detection and chronological order to compile and automatically organize class notes, both scanned and digital, for easy visualization. It also enables the user to  share their notes with more people and export it to a desktop-friendly format. 
+The app makes use of text recognition, keyword detection and chronological order to compile and automatically organize notebook, both scanned and digital, for easy visualization. It also enables the user to  share their notes with more people and export it to a desktop-friendly format. 
 
 ### App Evaluation
 [Evaluation of your app across the following attributes]
@@ -38,7 +38,8 @@ The app makes use of text recognition, keyword detection and chronological order
 
 **Optional Nice-to-have Stories**
 
-* Note exportation to dekstop and e-reader-friendly formats
+* A topic-centric discovery page
+* 
 
 ### 2. Screen Archetypes
 
@@ -55,16 +56,28 @@ The app makes use of text recognition, keyword detection and chronological order
 ### 3. Navigation
 
 **Tab Navigation** (Tab to Screen)
-* Home Screen
+* Home Feed
 * Scanner
 * Note explorer
 
 **Flow Navigation** (Screen to Screen)
-* Search bar
-* Note viewing
+
+* View post
+* Create post
+* View user profile
 
 ## Wireframes
+> Homescreen
 ![](https://i.imgur.com/tenvHf7.png)
+
+> Scanner
+![](https://i.imgur.com/j9qnVpM.png)
+
+> Note explorer
+![](https://i.imgur.com/AwPHKZC.png)
+
+> Content-specific explorer
+ ![](https://i.imgur.com/IhNdDiR.png)
 
 ### [BONUS] Digital Wireframes & Mockups
 
