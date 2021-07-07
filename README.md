@@ -55,7 +55,7 @@ The app makes use of text recognition, keyword detection and chronological order
 ### 3. Navigation
 
 **Tab Navigation** (Tab to Screen)
-* Home Feed
+* Home Screen
 * Scanner
 * Note explorer
 
