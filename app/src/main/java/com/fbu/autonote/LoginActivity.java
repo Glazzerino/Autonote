@@ -64,7 +64,7 @@ public class LoginActivity extends AppCompatActivity {
                     Log.d(TAG, "Logged in!");
                     Toast.makeText(context, "Logged in!", Toast.LENGTH_SHORT);
                     launchMainActivity();
-                        
+
                 } else {
                     Log.e(TAG, "Error logging in: " + task.getException().toString());
                 }
