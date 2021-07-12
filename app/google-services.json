@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "165600237895",
+    "project_id": "autonote-b7085",
+    "storage_bucket": "autonote-b7085.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:165600237895:android:dbbeb16ee2427af5d05462",
+        "android_client_info": {
+          "package_name": "com.fbu.autonote"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "165600237895-ega318qfgvartodses2slt1j0n190dla.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDIgD70nf3btIx3n1ylR4D7N0c3DelaCmc"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "165600237895-ega318qfgvartodses2slt1j0n190dla.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
