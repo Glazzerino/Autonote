@@ -66,6 +66,7 @@ public class LoginActivity extends AppCompatActivity {
                     launchMainActivity();
 
                 } else {
+                    Toast.makeText(context, "Incorrect password or email", Toast.LENGTH_SHORT);
                     Log.e(TAG, "Error logging in: " + task.getException().toString());
                 }
             }

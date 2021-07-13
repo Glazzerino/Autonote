@@ -8,4 +8,9 @@
     <color name="black">#FF000000</color>
     <color name="white">#ffffff</color>
     <color name="deau_blue">#BFD7EA</color>
+    <color name="white_powder">#FFFFFA</color>
+    <color name="red_orange">#FF4A1C</color>
+    <color name="emerald">#62C370</color>
+    <color name="grey">#565656</color>
+    <color name="yellow_red">#FFC857</color>
 </resources>
