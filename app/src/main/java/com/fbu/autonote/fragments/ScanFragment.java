@@ -1,29 +1,40 @@
 package com.fbu.autonote.fragments;
 
+import android.Manifest;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
-import android.graphics.Bitmap;
-import android.graphics.drawable.Drawable;
+import android.content.pm.PackageManager;
 import android.os.Bundle;
 
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.camera.core.Camera;
+import androidx.camera.core.CameraSelector;
+import androidx.camera.core.ImageCapture;
+import androidx.camera.core.Preview;
+import androidx.camera.lifecycle.ProcessCameraProvider;
+import androidx.camera.view.PreviewView;
+import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
+import androidx.lifecycle.LifecycleOwner;
 
+import android.util.Log;
+import android.util.Size;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ImageView;
+import android.widget.Toast;
 
-import com.bumptech.glide.Glide;
-import com.bumptech.glide.request.target.CustomTarget;
-import com.bumptech.glide.request.transition.Transition;
 import com.fbu.autonote.R;
+import com.google.common.util.concurrent.ListenableFuture;
 import com.labters.documentscanner.ImageCropActivity;
-import com.labters.documentscanner.helpers.ScannerConstants;
 
 import org.jetbrains.annotations.NotNull;
+
+import java.util.concurrent.ExecutionException;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -33,7 +44,11 @@ import org.jetbrains.annotations.NotNull;
 public class ScanFragment extends Fragment {
 
     private Context context;
-    ImageView ivTest;
+    private ListenableFuture<ProcessCameraProvider> cameraProviderFuture;
+    PreviewView pvCameraPreview;
+    ImageCapture imageCapture;
+    CameraSelector cameraSelector;
+    public final String TAG = "ScanFragment";
 
     // Required empty public constructor
     public ScanFragment() { }
@@ -55,36 +70,82 @@ public class ScanFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
+
         return inflater.inflate(R.layout.fragment_scan, container, false);
     }
 
     @Override
     public void onViewCreated(@NonNull @NotNull View view, @Nullable @org.jetbrains.annotations.Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        ivTest = view.findViewById(R.id.ivTest);
-        Intent intent = new Intent(context, ImageCropActivity.class);
-        Glide.with(context)
-                .asBitmap()
-                .load("https://i.imgur.com/WYTknCd.jpeg")
-                .into(new CustomTarget<Bitmap>() {
-                    @Override
-                    public void onResourceReady(@NonNull @NotNull Bitmap resource, @Nullable @org.jetbrains.annotations.Nullable Transition<? super Bitmap> transition) {
-                        ScannerConstants.selectedImageBitmap = resource;
-                    }
+        cameraProviderFuture = ProcessCameraProvider.getInstance(getContext());
+        pvCameraPreview = view.findViewById(R.id.pvCameraPreview);
+        //Offload process to a new thread managed by the ListenableFuture class
+        cameraSelector = new CameraSelector.Builder()
+                .requireLensFacing(CameraSelector.LENS_FACING_BACK)
+                .build();
+        cameraProviderFuture = ProcessCameraProvider.getInstance(getContext());
+        imageCapture = new ImageCapture.Builder()
+                .setTargetRotation(getContext().getDisplay().getRotation())
+                .setTargetResolution(new Size(1280, 720))
+                .setCaptureMode(ImageCapture.CAPTURE_MODE_MAXIMIZE_QUALITY)
+                .build();
 
-                    @Override
-                    public void onLoadCleared(@Nullable @org.jetbrains.annotations.Nullable Drawable placeholder) {
+        //Permission logic
+        if (!assertPermissionsGranted()) {
+            requestPermissionLauncher.launch(Manifest.permission.CAMERA);
+        } else {
+            startCamera();
+        }
+    }
 
-                    }
-                });
-        startActivityForResult(intent, 1);
+    private void bindToPreview(ProcessCameraProvider cameraProvider) {
+
+        Preview preview = new Preview.Builder().build();
+        preview.setSurfaceProvider(pvCameraPreview.getSurfaceProvider());
+
+        Camera camera = cameraProvider.bindToLifecycle((LifecycleOwner)this, cameraSelector, imageCapture, preview);
     }
 
     @Override
     public void onActivityResult(int requestCode, int resultCode, @Nullable @org.jetbrains.annotations.Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == 1 && resultCode == Activity.RESULT_OK) {
-            ivTest.setImageBitmap(ScannerConstants.selectedImageBitmap);
+
         }
+    }
+
+
+    //Request for permissions
+    private ActivityResultLauncher<String> requestPermissionLauncher =
+            registerForActivityResult(new ActivityResultContracts.RequestPermission(), isGranted -> {
+                if (!isGranted) {
+                    Toast.makeText(context,
+                            "Permission to use the camera is required to use this feature",
+                            Toast.LENGTH_SHORT)
+                            .show();
+                } else {
+                    Toast.makeText(context, "Camera access granted", Toast.LENGTH_SHORT).show();
+                    startCamera();
+                }
+            });
+
+    //Check if storage and camera permissions are granted
+    private boolean assertPermissionsGranted() {
+        return (ContextCompat.checkSelfPermission(context, Manifest.permission.CAMERA)
+                == PackageManager.PERMISSION_GRANTED
+                && ContextCompat.checkSelfPermission(context, Manifest.permission.MANAGE_EXTERNAL_STORAGE) ==
+                PackageManager.PERMISSION_GRANTED);
+    }
+
+    private void startCamera() {
+        cameraProviderFuture.addListener(() -> {
+            try {
+                ProcessCameraProvider cameraProvider = cameraProviderFuture.get();
+                bindToPreview(cameraProvider);
+            } catch (ExecutionException | InterruptedException e) {
+                //this isn't supposed to ever happen
+                Log.e(TAG, "Error during CameraX bind to preview: " + e.toString());
+            }
+        }, ContextCompat.getMainExecutor(getContext()));
     }
 }

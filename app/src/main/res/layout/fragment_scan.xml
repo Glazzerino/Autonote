@@ -7,9 +7,10 @@
     android:layout_height="match_parent"
     tools:context=".fragments.ScanFragment">
 
-    <ImageView
-        android:id="@+id/ivTest"
-        android:layout_width="379dp"
-        android:layout_height="346dp"
-        tools:src="@tools:sample/avatars" />
+    <androidx.camera.view.PreviewView
+        android:id="@+id/pvCameraPreview"
+        android:layout_width="match_parent"
+        android:layout_height="500dp">
+
+    </androidx.camera.view.PreviewView>
 </FrameLayout>

@@ -41,7 +41,6 @@ public class MainActivity extends AppCompatActivity {
                         fragment = NotesFragment.newInstance(context);
                         break;
                     case R.id.itemScan:
-<<<<<<< HEAD:app/src/main/java/com/fbu/autonote/activities/MainActivity.java
                         fragment = ScanFragment.newInstance(context);
                         break;
                 }
@@ -49,19 +48,7 @@ public class MainActivity extends AppCompatActivity {
                     fragmentManager.beginTransaction()
                             .replace(R.id.flFragmentContainer, fragment)
                             .commit();
-=======
-                        Intent intent = new Intent(context, ScannerActivity.class);
-                        startActivity(intent);
-                        break;
                 }
-                if (fragment != null) {
-
-                fragmentManager.beginTransaction()
-                        .replace(R.id.flFragmentContainer, fragment)
-                        .commit();
->>>>>>> 07d90641a60b5ae956a95e2b554711b3dd3f8fa1:app/src/main/java/com/fbu/autonote/MainActivity.java
-                }
-
                 return true;
             }
         });
