@@ -1,2 +1,4 @@
 rootProject.name = "Autonote"
 include ':app'
+include ':documentscanner'
+include ':openCVLibrary'
