@@ -14,6 +14,7 @@ import androidx.annotation.Nullable;
 import androidx.camera.core.Camera;
 import androidx.camera.core.CameraSelector;
 import androidx.camera.core.ImageCapture;
+import androidx.camera.core.ImageCaptureException;
 import androidx.camera.core.Preview;
 import androidx.camera.lifecycle.ProcessCameraProvider;
 import androidx.camera.view.PreviewView;
@@ -26,6 +27,7 @@ import android.util.Size;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageButton;
 import android.widget.Toast;
 
 import com.fbu.autonote.R;
@@ -34,6 +36,10 @@ import com.labters.documentscanner.ImageCropActivity;
 
 import org.jetbrains.annotations.NotNull;
 
+import java.io.File;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Locale;
 import java.util.concurrent.ExecutionException;
 
 /**
@@ -48,6 +54,8 @@ public class ScanFragment extends Fragment {
     PreviewView pvCameraPreview;
     ImageCapture imageCapture;
     CameraSelector cameraSelector;
+    ImageButton btnShutter;
+    public static String FILE_FORMAT = "yyyy-MM-dd-HH-mm-ss-SSS";
     public final String TAG = "ScanFragment";
 
     // Required empty public constructor
@@ -79,6 +87,8 @@ public class ScanFragment extends Fragment {
         super.onViewCreated(view, savedInstanceState);
         cameraProviderFuture = ProcessCameraProvider.getInstance(getContext());
         pvCameraPreview = view.findViewById(R.id.pvCameraPreview);
+        btnShutter = view.findViewById(R.id.btnShutter);
+
         //Offload process to a new thread managed by the ListenableFuture class
         cameraSelector = new CameraSelector.Builder()
                 .requireLensFacing(CameraSelector.LENS_FACING_BACK)
@@ -96,6 +106,12 @@ public class ScanFragment extends Fragment {
         } else {
             startCamera();
         }
+        btnShutter.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                capturePhoto();
+            }
+        });
     }
 
     private void bindToPreview(ProcessCameraProvider cameraProvider) {
@@ -113,7 +129,6 @@ public class ScanFragment extends Fragment {
 
         }
     }
-
 
     //Request for permissions
     private ActivityResultLauncher<String> requestPermissionLauncher =
@@ -147,5 +162,37 @@ public class ScanFragment extends Fragment {
                 Log.e(TAG, "Error during CameraX bind to preview: " + e.toString());
             }
         }, ContextCompat.getMainExecutor(getContext()));
+    }
+
+    private File capturePhoto() {
+        //Create new file
+        SimpleDateFormat dateFormat = new SimpleDateFormat(FILE_FORMAT, Locale.getDefault());
+        String time = dateFormat.format(new Date());
+        File file = new File(context.getFilesDir(),time + ".jpg");
+
+        ImageCapture.OutputFileOptions outputOptions = new ImageCapture.OutputFileOptions
+                .Builder(file)
+                .build();
+
+        imageCapture.takePicture(outputOptions, ContextCompat.getMainExecutor(context),
+                new ImageCapture.OnImageSavedCallback() {
+                    @Override
+                    public void onImageSaved(ImageCapture.OutputFileResults outputFileResults) {
+                        //Freeze preview so it shows the taken image
+                        try {
+                            cameraProviderFuture.get().unbindAll();
+                        } catch (ExecutionException | InterruptedException e) {
+                            e.printStackTrace();
+                            Log.e(TAG, "Could not unbind camera provider from preview view: " + e.toString());
+                        }
+                        Log.d(TAG, "image saved: " + file.getAbsolutePath());
+                    }
+                    @Override
+                    public void onError(ImageCaptureException error) {
+                        Log.e(TAG, "Failed to save capture image: " + error.toString());
+                    }
+                }
+        );
+        return file;
     }
 }
