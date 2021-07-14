@@ -138,7 +138,7 @@ public class MainActivity extends AppCompatActivity {
             File imageFile = scans.get(i).enhancedImageFile;
             //Reference to new file in Firebase. Give it the name of the on-device file
             StorageReference imageReference = newNoteStorage.child(imageFile.getName());
-
+            //Convert to byte array
             Bitmap imageBitmap = BitmapFactory.decodeFile(imageFile.getAbsolutePath());
             ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
             imageBitmap.compress(Bitmap.CompressFormat.JPEG, 100, outputStream);
@@ -156,11 +156,10 @@ public class MainActivity extends AppCompatActivity {
             }).addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
                 @Override
                 public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
-                    Log.d(TAG, "Succes uploading file " + imageFile.getName());
+                    Log.d(TAG, "Success uploading file " + imageFile.getName());
                     imagesUris.add(newNoteStorage.getPath());
                 }
             });
-
         }
     }
 }
