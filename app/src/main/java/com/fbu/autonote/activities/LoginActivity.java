@@ -1,9 +1,11 @@
 package com.fbu.autonote.activities;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.AppCompatButton;
 
+import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
@@ -27,6 +29,7 @@ public class LoginActivity extends AppCompatActivity {
     EditText etPassword;
     EditText etEmail;
     Context context;
+    int ACC_CREATION_REQ_CODE = 1011;
     public final String TAG = "LoginActivity";
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -49,14 +52,14 @@ public class LoginActivity extends AppCompatActivity {
         btnLogin.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                attemptLogin();
+                String email = etEmail.getText().toString();
+                String password = etPassword.getText().toString();
+                attemptLogin(email, password);
             }
         });
     }
 
-    private void attemptLogin() {
-        String email = etEmail.getText().toString();
-        String password = etPassword.getText().toString();
+    private void attemptLogin(String email, String password) {
 
         authManager.signInWithEmailAndPassword(email, password).addOnCompleteListener(new OnCompleteListener<AuthResult>() {
             @Override
@@ -76,13 +79,23 @@ public class LoginActivity extends AppCompatActivity {
 
     private void launchMainActivity() {
         Intent intent = new Intent(this, MainActivity.class);
+        intent.putExtra("requestCode", ACC_CREATION_REQ_CODE);
         startActivity(intent);
     }
 
     private void launchSignUp() {
         Intent intent = new Intent(this, SignUpActivity.class);
-        startActivity(intent);
-        attemptLogin();
+        startActivityForResult(intent, ACC_CREATION_REQ_CODE);
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable @org.jetbrains.annotations.Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (resultCode == Activity.RESULT_OK && requestCode == ACC_CREATION_REQ_CODE) {
+            String email = data.getStringExtra("email");
+            String password = data.getStringExtra("password");
+            attemptLogin(email, password);
+        }
     }
 
     @Override

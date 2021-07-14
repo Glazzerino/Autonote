@@ -4,6 +4,8 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.AppCompatButton;
 
+import android.app.Activity;
+import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -50,6 +52,12 @@ public class SignUpActivity extends AppCompatActivity {
                     public void onComplete(@NonNull @NotNull Task<AuthResult> task) {
                         if (task.isSuccessful()) {
                             Toast.makeText(getApplicationContext(), "Welcome to Autonote!", Toast.LENGTH_LONG);
+                            Intent intent = new Intent();
+                            int requestCode = getIntent().getIntExtra("requestCode", 0);
+                            intent.putExtra("result", requestCode);
+                            intent.putExtra("email", email);
+                            intent.putExtra("password", password);
+                            setResult(Activity.RESULT_OK, intent);
                             finish();
                         } else {
                             Toast.makeText(getApplicationContext(), "Error while generating new user!" ,Toast.LENGTH_SHORT);

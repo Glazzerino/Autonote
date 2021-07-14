@@ -1,6 +1,12 @@
 package com.fbu.autonote.models;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.util.HashMap;
 import java.util.List;
+
+import es.dmoral.toasty.Toasty;
 
 /**
  * Represents the data model that contains all note-related data.
@@ -80,5 +86,16 @@ public class Note {
 
     public long getUserId() {
         return userId;
+    }
+
+    public JSONObject asJson() throws JSONException {
+        JSONObject jsonObject = new JSONObject();
+
+        jsonObject.put("userId", userId);
+        jsonObject.put("noteId", noteId);
+        jsonObject.put("imageUrl", imageURL);
+        jsonObject.put("keywords", keywords);
+        jsonObject.put("textContent", textContent);
+        return jsonObject;
     }
 }
