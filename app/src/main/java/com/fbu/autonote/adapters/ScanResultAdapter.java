@@ -8,6 +8,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
@@ -19,6 +20,8 @@ import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 import java.util.List;
+
+import es.dmoral.toasty.Toasty;
 
 public class ScanResultAdapter extends RecyclerView.Adapter<ScanResultAdapter.ViewHolder> {
 
@@ -33,6 +36,7 @@ public class ScanResultAdapter extends RecyclerView.Adapter<ScanResultAdapter.Vi
     @NotNull
     @Override
     public ViewHolder onCreateViewHolder(@NonNull @NotNull ViewGroup parent, int viewType) {
+        //TODO: add a fullscreen view mode upon view click
         View view = LayoutInflater.from(context).inflate(R.layout.item_scan_result, parent, false);
         return new ViewHolder(view);
     }
@@ -68,4 +72,5 @@ public class ScanResultAdapter extends RecyclerView.Adapter<ScanResultAdapter.Vi
             tvPositionResult.setText(String.valueOf(getAdapterPosition() + 1));
         }
     }
+
 }

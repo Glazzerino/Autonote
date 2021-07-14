@@ -1,17 +1,31 @@
 <?xml version="1.0" encoding="utf-8"?>
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context=".fragments.ScanResultsFragment">
+
     <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent">
+
+        <com.google.android.material.progressindicator.LinearProgressIndicator
+            android:id="@+id/progressIndicator"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:indeterminate="true"
+            app:indeterminateAnimationType="disjoint"
+            app:indicatorColor="@color/emerald"
+            tools:trackColor="@color/yellow_red">
+
+        </com.google.android.material.progressindicator.LinearProgressIndicator>
 
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/rvScanResults"
             android:layout_width="match_parent"
             android:layout_height="648dp"
+            android:layout_below="@id/progressIndicator"
             android:layout_alignParentStart="true"
             android:layout_alignParentTop="true"
             android:layout_marginStart="0dp"
