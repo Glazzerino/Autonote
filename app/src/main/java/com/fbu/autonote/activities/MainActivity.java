@@ -33,6 +33,8 @@ public class MainActivity extends AppCompatActivity {
         context = this;
 
         //Set bottom menu button actions
+        //TODO: PROFILE VIEW
+        //TODO: NOTES VIEW
         bottomMenu.setOnItemSelectedListener(new NavigationBarView.OnItemSelectedListener() {
             @Override
             public boolean onNavigationItemSelected(@NonNull @NotNull MenuItem item) {
