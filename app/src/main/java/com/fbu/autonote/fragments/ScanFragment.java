@@ -38,6 +38,7 @@ import com.bumptech.glide.load.data.BufferedOutputStream;
 import com.bumptech.glide.request.target.CustomTarget;
 import com.bumptech.glide.request.transition.Transition;
 import com.fbu.autonote.R;
+import com.fbu.autonote.activities.CropActivity;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.labters.documentscanner.ImageCropActivity;
 import com.labters.documentscanner.helpers.ScannerConstants;
@@ -76,9 +77,6 @@ public class ScanFragment extends Fragment {
     public static String FILE_FORMAT = "yyyy-MM-dd-HH-mm-ss-SSS";
     public final String TAG = "ScanFragment";
 
-    //code used to assert result from the cropping activity
-    public static final int CROP_REQUEST = 12;
-
     // Required empty public constructor
     public ScanFragment() { }
 
@@ -93,6 +91,7 @@ public class ScanFragment extends Fragment {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
     }
 
     @Override
@@ -215,7 +214,7 @@ public class ScanFragment extends Fragment {
                         //Freeze preview so it shows the taken image
                         try {
                             cameraProviderFuture.get().unbindAll();
-                            startCropActivity(file);
+
                         } catch (ExecutionException | InterruptedException e) {
                             e.printStackTrace();
                             Log.e(TAG, "Could not unbind camera provider from preview view: " + e.toString());
@@ -238,27 +237,7 @@ public class ScanFragment extends Fragment {
         return time;
     }
 
-    //Send a specific file to the cropping activity
-    private void startCropActivity(File image) {
-        Bitmap imageBitmap = BitmapFactory.decodeFile(image.getPath());
-        Log.e(TAG, image.getPath());
-        Glide.with(context)
-                .asBitmap()
-                .load("https://i.imgur.com/WYTknCd.jpeg")
-                .into(new CustomTarget<Bitmap>() {
-                    @Override
-                    public void onResourceReady(@NonNull @NotNull Bitmap resource, @Nullable @org.jetbrains.annotations.Nullable Transition<? super Bitmap> transition) {
-                        ScannerConstants.selectedImageBitmap = resource;
-                        Intent intent = new Intent(context, ImageCropActivity.class);
-                        startActivityForResult(intent, CROP_REQUEST);
-                    }
 
-                    @Override
-                    public void onLoadCleared(@Nullable @org.jetbrains.annotations.Nullable Drawable placeholder) {
-
-                    }
-                });
-    }
 
 //This function takes care of initializing directory objets for both kinds of images
     /**
