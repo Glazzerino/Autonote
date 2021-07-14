@@ -15,7 +15,7 @@ import android.widget.Toast;
 
 import com.fbu.autonote.fragments.NotesFragment;
 import com.fbu.autonote.R;
-import com.fbu.autonote.fragments.ScanFragment;
+import com.fbu.autonote.fragments.ScanResultsFragment;
 import com.geniusscansdk.core.GeniusScanSDK;
 import com.geniusscansdk.core.LicenseException;
 import com.geniusscansdk.scanflow.ScanConfiguration;
@@ -23,15 +23,18 @@ import com.geniusscansdk.scanflow.ScanFlow;
 import com.geniusscansdk.scanflow.ScanResult;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.navigation.NavigationBarView;
-import com.labters.documentscanner.helpers.ScannerConstants;
 
 import org.jetbrains.annotations.NotNull;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
     BottomNavigationView bottomMenu;
     Fragment fragment;
     FragmentManager fragmentManager;
     Context context;
+    List<ScanResult.Scan> scans;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -59,16 +62,10 @@ public class MainActivity extends AppCompatActivity {
                         fragment = NotesFragment.newInstance(context);
                         break;
                     case R.id.itemScan:
-                        ScanConfiguration scanConfiguration = new ScanConfiguration();
-                        scanConfiguration.multiPage = true;
-                        ScanFlow.scanWithConfiguration(MainActivity.this, scanConfiguration);
+                        initScannerSDK();
                         break;
                 }
-                if (fragment != null) {
-                    fragmentManager.beginTransaction()
-                            .replace(R.id.flFragmentContainer, fragment)
-                            .commit();
-                }
+                startFragment();
                 return true;
             }
         });
@@ -79,10 +76,26 @@ public class MainActivity extends AppCompatActivity {
         super.onActivityResult(requestCode, resultCode, data);
         try {
             ScanResult result = ScanFlow.getScanResultFromActivityResult(data);
-            Toast.makeText(this, "Scanned!", Toast.LENGTH_SHORT).show();
+            scans = result.scans;
+            fragment = ScanResultsFragment.newInstance(scans);
+            startFragment();
+            Toast.makeText(getApplicationContext(), "Scanned!", Toast.LENGTH_SHORT).show();
             
         } catch (Exception e) {
-            // There was an error during the scan flow. Check the exception for more details.
+            Log.e("MainActivity", e.toString());
+        }
+    }
+    private void initScannerSDK() {
+        ScanConfiguration scanConfiguration = new ScanConfiguration();
+        scanConfiguration.multiPage = true;
+        ScanFlow.scanWithConfiguration(this, scanConfiguration);
+    }
+
+    private void startFragment() {
+        if (fragment != null) {
+            fragmentManager.beginTransaction()
+                    .replace(R.id.flFragmentContainer, fragment)
+                    .commit();
         }
     }
 }

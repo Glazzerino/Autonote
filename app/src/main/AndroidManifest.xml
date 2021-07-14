@@ -12,7 +12,6 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.Autonote">
         <activity android:name=".activities.SignUpActivity"></activity>
-        <activity android:name=".activities.CropActivity"></activity>
         <activity android:name=".activities.LoginActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
