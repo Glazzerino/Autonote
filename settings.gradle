@@ -1,3 +1,2 @@
 rootProject.name = "Autonote"
 include ':app'
-include ':openCVLibrary'
