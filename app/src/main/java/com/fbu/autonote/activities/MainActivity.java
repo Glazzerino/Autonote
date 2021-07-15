@@ -18,6 +18,18 @@ import android.view.MenuItem;
 import android.widget.Toast;
 import android.util.Base64;
 
+import com.android.volley.AuthFailureError;
+import com.android.volley.Network;
+import com.android.volley.Request;
+import com.android.volley.RequestQueue;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.BasicNetwork;
+import com.android.volley.toolbox.HurlStack;
+import com.android.volley.toolbox.JsonArrayRequest;
+import com.android.volley.toolbox.JsonObjectRequest;
+import com.android.volley.toolbox.StringRequest;
+import com.android.volley.toolbox.Volley;
 import com.fbu.autonote.fragments.NotesFragment;
 import com.fbu.autonote.R;
 import com.fbu.autonote.fragments.ScanResultsFragment;
@@ -50,10 +62,11 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.google.gson.JsonPrimitive;
 import com.loopj.android.http.AsyncHttpClient;
-import com.loopj.android.http.JsonHttpResponseHandler;
 import com.loopj.android.http.RequestParams;
 
 import org.jetbrains.annotations.NotNull;
+import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.ByteArrayOutputStream;
@@ -61,12 +74,12 @@ import java.io.File;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Random;
 
-import cz.msebera.android.httpclient.Header;
-import cz.msebera.android.httpclient.entity.StringEntity;
 import es.dmoral.toasty.Toasty;
 
 public class MainActivity extends AppCompatActivity {
@@ -123,7 +136,11 @@ public class MainActivity extends AppCompatActivity {
                 return true;
             }
         });
-        getTopic("Cells are the basic unit of life");
+        try {
+            getTopic("Cells are the basic unit of life");
+        } catch (JSONException e) {
+            Log.e(TAG, e.toString());
+        }
     }
 
     @Override
@@ -292,25 +309,44 @@ public class MainActivity extends AppCompatActivity {
                 });
     }
 
-private void getTopic(String textInput) {
-    AsyncHttpClient client = new AsyncHttpClient();
+private void getTopic(String textInput) throws JSONException {
     String url = "https://api.uclassify.com/v1/uClassify/Topics/classify";
-    RequestParams params = new RequestParams();
-    client.addHeader("Authorization", "Token " + getString(R.string.uclassify_readkey));
-    client.addHeader("Content-Type", "application/json");
-    JsonObject text = new JsonObject();
-    JsonArray textArray = new JsonArray();
-    textArray.add(textInput);
-    text.add("text", textArray);
-    params.add("body", text.getAsString());
 
-    client.post(context, url, params, new JsonHttpResponseHandler() {
+    RequestQueue requestQueue = Volley.newRequestQueue(context);
+    JSONObject body = new JSONObject();
+    JSONArray data = new JSONArray();
+    data.put(textInput);
+    body.put("texts", data.toString());
+    JSONArray container = new JSONArray();
+    container.put(body);
+    StringRequest jsonArrayRequest = new StringRequest(Request.Method.POST, url, new Response.Listener<String>() {
         @Override
-        public void onSuccess(int statusCode, Header[] headers, JSONObject response) {
-            super.onSuccess(statusCode, headers, response);
-        }
-    });
+        public void onResponse(String response) {
 
+        }
+    }, new Response.ErrorListener() {
+        @Override
+        public void onErrorResponse(VolleyError error) {
+            Log.e(TAG, error.toString());
+        }
+    }) {
+        @Nullable
+        @org.jetbrains.annotations.Nullable
+        @Override
+        protected Map<String, String> getParams() throws AuthFailureError {
+            HashMap<String, String> params = new HashMap<>();
+            params.put("body", body.toString());
+            return params;
+        }
+
+        @Override
+        public Map<String, String> getHeaders() throws AuthFailureError {
+            HashMap<String, String> headers = new HashMap<>();
+            headers.put("Authorization", "Token "+ getString(R.string.uclassify_readkey));
+            return headers;
+        }
+    };
+    requestQueue.add(jsonArrayRequest);
 }
     //Utility function
     @NotNull
