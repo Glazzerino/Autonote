@@ -49,17 +49,24 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.google.gson.JsonPrimitive;
+import com.loopj.android.http.AsyncHttpClient;
+import com.loopj.android.http.JsonHttpResponseHandler;
+import com.loopj.android.http.RequestParams;
 
 import org.jetbrains.annotations.NotNull;
+import org.json.JSONObject;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Random;
 
+import cz.msebera.android.httpclient.Header;
+import cz.msebera.android.httpclient.entity.StringEntity;
 import es.dmoral.toasty.Toasty;
 
 public class MainActivity extends AppCompatActivity {
@@ -116,6 +123,7 @@ public class MainActivity extends AppCompatActivity {
                 return true;
             }
         });
+        getTopic("Cells are the basic unit of life");
     }
 
     @Override
@@ -191,7 +199,7 @@ public class MainActivity extends AppCompatActivity {
             public void onSuccess(List<Task<?>> tasks) {
                 Toasty.success(context, "All images uploaded!",Toasty.LENGTH_LONG).show();
 
-                List<Note> notes = processImages(imagesUris);
+                processImages(imagesUris);
             }
         });
     }
@@ -203,10 +211,10 @@ public class MainActivity extends AppCompatActivity {
      * @see <a href="https://firebase.google.com/docs/ml/android/recognize-text?authuser=0">
      *     Firebase Vision API docs</a>
      */
-    private List<Note> processImages(List<String> imagesUris) {
-        List<Note> notes = new ArrayList<>();
+    private void processImages(List<String> imagesUris) {
         List<Task<JsonElement>> annotationTasks = new ArrayList<>();
         List<String> textContents = new ArrayList<>();
+
         for (ScanResult.Scan scan : scans) {
             byte[] byteArrayImage = getByteArray(scan.enhancedImageFile);
             JsonObject request = getAnnotationRequest(byteArrayImage);
@@ -227,18 +235,22 @@ public class MainActivity extends AppCompatActivity {
         allAnnotations.addOnSuccessListener(new OnSuccessListener<List<Task<JsonElement>>>() {
             @Override
             public void onSuccess(List<Task<JsonElement>> tasks) {
+                //Add each task's (image's) text to an arraylist
                 for (Object rawObject : tasks) {
                     JsonArray json = (JsonArray) rawObject;
-                    JsonObject annotation = json.get(0).getAsJsonObject().get("fullTextAnnotation").getAsJsonObject();
+                    JsonObject annotation = json.get(0)
+                            .getAsJsonObject()
+                            .get("fullTextAnnotation")
+                            .getAsJsonObject();
                     String text = annotation.get("text").toString();
                     Log.d(TAG, String.format("%s%n", text));
                     System.out.format("%s%n", annotation.get("text").getAsString());
                     textContents.add(text);
+
                 }
             }
         });
 
-        return notes;
     }
 
     @NotNull
@@ -279,6 +291,27 @@ public class MainActivity extends AppCompatActivity {
                     }
                 });
     }
+
+private void getTopic(String textInput) {
+    AsyncHttpClient client = new AsyncHttpClient();
+    String url = "https://api.uclassify.com/v1/uClassify/Topics/classify";
+    RequestParams params = new RequestParams();
+    client.addHeader("Authorization", "Token " + getString(R.string.uclassify_readkey));
+    client.addHeader("Content-Type", "application/json");
+    JsonObject text = new JsonObject();
+    JsonArray textArray = new JsonArray();
+    textArray.add(textInput);
+    text.add("text", textArray);
+    params.add("body", text.getAsString());
+
+    client.post(context, url, params, new JsonHttpResponseHandler() {
+        @Override
+        public void onSuccess(int statusCode, Header[] headers, JSONObject response) {
+            super.onSuccess(statusCode, headers, response);
+        }
+    });
+
+}
     //Utility function
     @NotNull
     private byte[] getByteArray(File imageFile) {
