@@ -233,7 +233,7 @@ public class MainActivity extends AppCompatActivity {
             });
             annotationTasks.add(annotationTask);
         }
-
+        //this object accumulates all tasks' results and listens to them as a single result
         Task<List<Task<JsonElement>>> allAnnotations = Tasks.whenAllSuccess(annotationTasks);
         //Wait until all tasks have been completed and then get resulting text
         allAnnotations.addOnSuccessListener(new OnSuccessListener<List<Task<JsonElement>>>() {
@@ -251,8 +251,7 @@ public class MainActivity extends AppCompatActivity {
                     System.out.format("%s%n", annotation.get("text").getAsString());
                     textContents.add(text);
                 }
-                List<String> topics = getTopics(textContents);
-
+                getTopics(textContents);
             }
         });
 
@@ -295,7 +294,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     //Calls an API to get the topic of a specific block of text
-    public List<String> getTopics(List<String> detectedTexts) {
+    public void getTopics(List<String> detectedTexts) {
         List<String> topics = new ArrayList<>();
         OkHttpClient client = new OkHttpClient();
         JSONArray texts = new JSONArray();
@@ -326,33 +325,50 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onResponse(@NotNull Call call, @NotNull Response response) throws IOException {
                 String data = response.body().string();
-                try {
+
                     //Iterate over results gotten for each text provided to the API
                     //More info about the API here: https://www.uclassify.com/docs/restapi
-                    JSONArray textsResults = new JSONArray(data);
-                    Log.d(TAG, textsResults.toString());
+                JSONArray textsResults = null;
+                try {
+                    textsResults = new JSONArray(data);
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+
+                Log.d(TAG, textsResults.toString());
 
                     for (int j = 0; j<textsResults.length(); j++) {
-                        JSONArray classifications = textsResults.getJSONArray(1);
+                        JSONArray classifications = null;
+                        try {
+                            classifications = textsResults.getJSONObject(j).getJSONArray("classification");
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                        }
+
                         //Iterate over each topic and extract the one with the most weight
-                        float max = 0;
+                        double max = 0;
                         String maxTopic = new String();
                         for (int i=0; i<classifications.length(); i++) {
-                            JSONObject topicJson = classifications.getJSONObject(i);
-                            float weight = topicJson.getInt("p");
-                            if (weight > max) {
-                                max = weight;
-                                maxTopic = topicJson.getString("className");
+                            JSONObject topicJson = null;
+                            try {
+                                topicJson = classifications.getJSONObject(i);
+                                double weight = topicJson.getDouble("p");
+                                if (weight > max) {
+                                    max = weight;
+                                    maxTopic = topicJson.getString("className");
+                                }
+                            } catch (JSONException e) {
+                                e.printStackTrace();
                             }
+
                         }
                         topics.add(maxTopic);
                     }
-                } catch (JSONException e) {
-                    Log.d(TAG, "Error parsing data from uClassify: " + e.toString());
+                    for (String topic : topics) {
+                        Log.d(TAG, "Topic: " + topic);
+                    }
                 }
-            }
         });
-        return topics;
     }
 
     //Utility function
