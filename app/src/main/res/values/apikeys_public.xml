@@ -2,4 +2,5 @@
 <resources>
     <string name="genius_apikey">533c5006565e08000250055439525a0e4a0550111a57474d0d585b1252670106500c5c510905010f</string>
     <string name="uclassify_readkey">YPW0gphLXzL8</string>
+    <string name="monkeylearn">a892bcefcac6e053b4f54ddc85b863b2377441ee</string>
 </resources>

@@ -1,46 +1,39 @@
 package com.fbu.autonote.activities;
 
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.fragment.app.Fragment;
-import androidx.fragment.app.FragmentManager;
-
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Bundle;
-import android.text.TextUtils;
+import android.util.Base64;
 import android.util.Log;
 import android.view.MenuItem;
 import android.widget.Toast;
-import android.util.Base64;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentManager;
 
 import com.android.volley.AuthFailureError;
-import com.android.volley.Network;
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
-import com.android.volley.toolbox.BasicNetwork;
-import com.android.volley.toolbox.HurlStack;
-import com.android.volley.toolbox.JsonArrayRequest;
-import com.android.volley.toolbox.JsonObjectRequest;
+import com.android.volley.toolbox.JsonRequest;
 import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
-import com.fbu.autonote.fragments.NotesFragment;
 import com.fbu.autonote.R;
+import com.fbu.autonote.fragments.NotesFragment;
 import com.fbu.autonote.fragments.ScanResultsFragment;
-import com.fbu.autonote.models.Note;
 import com.geniusscansdk.core.GeniusScanSDK;
 import com.geniusscansdk.core.LicenseException;
 import com.geniusscansdk.scanflow.ScanConfiguration;
 import com.geniusscansdk.scanflow.ScanFlow;
 import com.geniusscansdk.scanflow.ScanResult;
 import com.google.android.gms.tasks.Continuation;
-import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
@@ -62,6 +55,7 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.google.gson.JsonPrimitive;
 import com.loopj.android.http.AsyncHttpClient;
+import com.loopj.android.http.JsonHttpResponseHandler;
 import com.loopj.android.http.RequestParams;
 
 import org.jetbrains.annotations.NotNull;
@@ -71,15 +65,14 @@ import org.json.JSONObject;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
 
+import cz.msebera.android.httpclient.Header;
 import es.dmoral.toasty.Toasty;
 
 public class MainActivity extends AppCompatActivity {
@@ -94,6 +87,7 @@ public class MainActivity extends AppCompatActivity {
     DatabaseReference databaseReference;
     String userId;
     StorageReference imageStorage;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -106,6 +100,7 @@ public class MainActivity extends AppCompatActivity {
         databaseReference = FirebaseDatabase.getInstance().getReference(userId);
         imageStorage = FirebaseStorage.getInstance().getReference(userId);
         firebaseFunctions = FirebaseFunctions.getInstance();
+
         //Init GeniusSDK
         try {
             GeniusScanSDK.init(context, getString(R.string.genius_apikey));
@@ -136,11 +131,8 @@ public class MainActivity extends AppCompatActivity {
                 return true;
             }
         });
-        try {
-            getTopic("Cells are the basic unit of life");
-        } catch (JSONException e) {
-            Log.e(TAG, e.toString());
-        }
+
+        getTopic();
     }
 
     @Override
@@ -309,20 +301,17 @@ public class MainActivity extends AppCompatActivity {
                 });
     }
 
-private void getTopic(String textInput) throws JSONException {
-    String url = "https://api.uclassify.com/v1/uClassify/Topics/classify";
-
-    RequestQueue requestQueue = Volley.newRequestQueue(context);
-    JSONObject body = new JSONObject();
+    //ERROR: Two apis keep saying there is a problem parsing internal json array.
+private void getTopic() {
+    RequestQueue requestQueue = Volley.newRequestQueue(this);
     JSONArray data = new JSONArray();
-    data.put(textInput);
-    body.put("texts", data.toString());
-    JSONArray container = new JSONArray();
-    container.put(body);
-    StringRequest jsonArrayRequest = new StringRequest(Request.Method.POST, url, new Response.Listener<String>() {
+    data.put("The cell is the basic unit of life");
+    data.put("I want to study art");
+    String url = "https://api.monkeylearn.com/v3/extractors/ex_YCya9nrn/extract/";
+    StringRequest stringRequest = new StringRequest(Request.Method.POST, url, new Response.Listener<String>() {
         @Override
         public void onResponse(String response) {
-
+            Log.d(TAG, response);
         }
     }, new Response.ErrorListener() {
         @Override
@@ -330,23 +319,25 @@ private void getTopic(String textInput) throws JSONException {
             Log.e(TAG, error.toString());
         }
     }) {
+        @Override
+        public Map<String, String> getHeaders() throws AuthFailureError {
+            HashMap<String, String> headers = new HashMap<>();
+            //OAuth 2.0 requires the prefix "Token "
+            headers.put("Authorization", "Token " + getString(R.string.monkeylearn));
+            headers.put("Content-Type", "application/json");
+            return headers;
+        }
+
         @Nullable
         @org.jetbrains.annotations.Nullable
         @Override
         protected Map<String, String> getParams() throws AuthFailureError {
             HashMap<String, String> params = new HashMap<>();
-            params.put("body", body.toString());
+            params.put("data", data.toString());
             return params;
         }
-
-        @Override
-        public Map<String, String> getHeaders() throws AuthFailureError {
-            HashMap<String, String> headers = new HashMap<>();
-            headers.put("Authorization", "Token "+ getString(R.string.uclassify_readkey));
-            return headers;
-        }
     };
-    requestQueue.add(jsonArrayRequest);
+    requestQueue.add(stringRequest);
 }
     //Utility function
     @NotNull
