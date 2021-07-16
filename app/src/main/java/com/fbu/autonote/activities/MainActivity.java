@@ -64,7 +64,6 @@ import es.dmoral.toasty.Toasty;
 import okhttp3.Call;
 import okhttp3.Callback;
 import okhttp3.MediaType;
-import okhttp3.MultipartBody;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.RequestBody;
@@ -129,8 +128,6 @@ public class MainActivity extends AppCompatActivity {
                 return true;
             }
         });
-
-        getTopic("The cell is the basic unit of life");
     }
 
     @Override
@@ -253,8 +250,9 @@ public class MainActivity extends AppCompatActivity {
                     Log.d(TAG, String.format("%s%n", text));
                     System.out.format("%s%n", annotation.get("text").getAsString());
                     textContents.add(text);
-
                 }
+                List<String> topics = getTopics(textContents);
+
             }
         });
 
@@ -291,23 +289,22 @@ public class MainActivity extends AppCompatActivity {
             .continueWith(new Continuation<HttpsCallableResult, JsonElement>() {
                 @Override
                 public JsonElement then(@NonNull Task<HttpsCallableResult> task) {
-                    // This continuation runs on either success or failure, but if the task
-                    // has failed then getResult() will throw an Exception which will be
-                    // propagated down.
                     return JsonParser.parseString(new Gson().toJson(task.getResult().getData()));
                 }
             });
     }
 
-    public void getTopic(String input) {
+    //Calls an API to get the topic of a specific block of text
+    public List<String> getTopics(List<String> detectedTexts) {
+        List<String> topics = new ArrayList<>();
         OkHttpClient client = new OkHttpClient();
         JSONArray texts = new JSONArray();
-        texts.put(input);
+        for (String item : detectedTexts) {
+            texts.put(item);
+        }
         JSONObject bodyJson = new JSONObject();
         try {
             bodyJson.put("texts", texts);
-
-
         } catch (JSONException e) {
             e.printStackTrace();
         }
@@ -328,9 +325,34 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public void onResponse(@NotNull Call call, @NotNull Response response) throws IOException {
-                Log.d( TAG ,"RESPONSE: " + response.body().string());
+                String data = response.body().string();
+                try {
+                    //Iterate over results gotten for each text provided to the API
+                    //More info about the API here: https://www.uclassify.com/docs/restapi
+                    JSONArray textsResults = new JSONArray(data);
+                    Log.d(TAG, textsResults.toString());
+
+                    for (int j = 0; j<textsResults.length(); j++) {
+                        JSONArray classifications = textsResults.getJSONArray(1);
+                        //Iterate over each topic and extract the one with the most weight
+                        float max = 0;
+                        String maxTopic = new String();
+                        for (int i=0; i<classifications.length(); i++) {
+                            JSONObject topicJson = classifications.getJSONObject(i);
+                            float weight = topicJson.getInt("p");
+                            if (weight > max) {
+                                max = weight;
+                                maxTopic = topicJson.getString("className");
+                            }
+                        }
+                        topics.add(maxTopic);
+                    }
+                } catch (JSONException e) {
+                    Log.d(TAG, "Error parsing data from uClassify: " + e.toString());
+                }
             }
         });
+        return topics;
     }
 
     //Utility function
