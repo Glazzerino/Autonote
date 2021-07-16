@@ -17,14 +17,6 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 
-import com.android.volley.AuthFailureError;
-import com.android.volley.Request;
-import com.android.volley.RequestQueue;
-import com.android.volley.Response;
-import com.android.volley.VolleyError;
-import com.android.volley.toolbox.JsonRequest;
-import com.android.volley.toolbox.StringRequest;
-import com.android.volley.toolbox.Volley;
 import com.fbu.autonote.R;
 import com.fbu.autonote.fragments.NotesFragment;
 import com.fbu.autonote.fragments.ScanResultsFragment;
@@ -54,9 +46,6 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.google.gson.JsonPrimitive;
-import com.loopj.android.http.AsyncHttpClient;
-import com.loopj.android.http.JsonHttpResponseHandler;
-import com.loopj.android.http.RequestParams;
 
 import org.jetbrains.annotations.NotNull;
 import org.json.JSONArray;
@@ -65,15 +54,21 @@ import org.json.JSONObject;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
 import java.util.Random;
 
-import cz.msebera.android.httpclient.Header;
 import es.dmoral.toasty.Toasty;
+import okhttp3.Call;
+import okhttp3.Callback;
+import okhttp3.MediaType;
+import okhttp3.MultipartBody;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.RequestBody;
+import okhttp3.Response;
 
 public class MainActivity extends AppCompatActivity {
     public static final String TAG = "MainActivity";
@@ -87,6 +82,9 @@ public class MainActivity extends AppCompatActivity {
     DatabaseReference databaseReference;
     String userId;
     StorageReference imageStorage;
+
+    public static final MediaType JSON
+            = MediaType.get("application/json; charset=utf-8");
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -132,7 +130,7 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        getTopic();
+        getTopic("The cell is the basic unit of life");
     }
 
     @Override
@@ -288,57 +286,53 @@ public class MainActivity extends AppCompatActivity {
 
     private Task<JsonElement> getAnnotateImageTask(String request) {
         return firebaseFunctions
-                .getHttpsCallable("annotateImage")
-                .call(request)
-                .continueWith(new Continuation<HttpsCallableResult, JsonElement>() {
-                    @Override
-                    public JsonElement then(@NonNull Task<HttpsCallableResult> task) {
-                        // This continuation runs on either success or failure, but if the task
-                        // has failed then getResult() will throw an Exception which will be
-                        // propagated down.
-                        return JsonParser.parseString(new Gson().toJson(task.getResult().getData()));
-                    }
-                });
+            .getHttpsCallable("annotateImage")
+            .call(request)
+            .continueWith(new Continuation<HttpsCallableResult, JsonElement>() {
+                @Override
+                public JsonElement then(@NonNull Task<HttpsCallableResult> task) {
+                    // This continuation runs on either success or failure, but if the task
+                    // has failed then getResult() will throw an Exception which will be
+                    // propagated down.
+                    return JsonParser.parseString(new Gson().toJson(task.getResult().getData()));
+                }
+            });
     }
 
-    //ERROR: Two apis keep saying there is a problem parsing internal json array.
-private void getTopic() {
-    RequestQueue requestQueue = Volley.newRequestQueue(this);
-    JSONArray data = new JSONArray();
-    data.put("The cell is the basic unit of life");
-    data.put("I want to study art");
-    String url = "https://api.monkeylearn.com/v3/extractors/ex_YCya9nrn/extract/";
-    StringRequest stringRequest = new StringRequest(Request.Method.POST, url, new Response.Listener<String>() {
-        @Override
-        public void onResponse(String response) {
-            Log.d(TAG, response);
-        }
-    }, new Response.ErrorListener() {
-        @Override
-        public void onErrorResponse(VolleyError error) {
-            Log.e(TAG, error.toString());
-        }
-    }) {
-        @Override
-        public Map<String, String> getHeaders() throws AuthFailureError {
-            HashMap<String, String> headers = new HashMap<>();
-            //OAuth 2.0 requires the prefix "Token "
-            headers.put("Authorization", "Token " + getString(R.string.monkeylearn));
-            headers.put("Content-Type", "application/json");
-            return headers;
+    public void getTopic(String input) {
+        OkHttpClient client = new OkHttpClient();
+        JSONArray texts = new JSONArray();
+        texts.put(input);
+        JSONObject bodyJson = new JSONObject();
+        try {
+            bodyJson.put("texts", texts);
+
+
+        } catch (JSONException e) {
+            e.printStackTrace();
         }
 
-        @Nullable
-        @org.jetbrains.annotations.Nullable
-        @Override
-        protected Map<String, String> getParams() throws AuthFailureError {
-            HashMap<String, String> params = new HashMap<>();
-            params.put("data", data.toString());
-            return params;
-        }
-    };
-    requestQueue.add(stringRequest);
-}
+        RequestBody body = RequestBody.create(JSON, bodyJson.toString());
+        Request request = new Request.Builder()
+                .url("https://api.uclassify.com/v1/uClassify/Topics/classify")
+                .post(body)
+                .addHeader("Content-Type", "application/json")
+                .addHeader("Authorization", "Token " + getString(R.string.uclassify_readkey))
+                .build();
+
+        client.newCall(request).enqueue(new Callback() {
+            @Override
+            public void onFailure(@NotNull Call call, @NotNull IOException e) {
+                Log.e(TAG, e.toString());
+            }
+
+            @Override
+            public void onResponse(@NotNull Call call, @NotNull Response response) throws IOException {
+                Log.d( TAG ,"RESPONSE: " + response.body().string());
+            }
+        });
+    }
+
     //Utility function
     @NotNull
     private byte[] getByteArray(File imageFile) {
