@@ -151,7 +151,7 @@ public class MainActivity extends AppCompatActivity {
             Task<List<Task<JsonElement>>> annotationTasks = getAnnotationTasks();
             List<String> topics = new ArrayList<>();
             List<String> textContents = new ArrayList<>();
-
+            List<List<String>> keywords = new ArrayList<>();
             uploadTasks.continueWithTask(new Continuation<List<Task<Uri>>, Task<List<Task<JsonElement>>>>() {
                 @Override
                 public Task<List<Task<JsonElement>>> then(@NonNull @NotNull Task<List<Task<Uri>>> tasks) throws Exception {
@@ -164,7 +164,7 @@ public class MainActivity extends AppCompatActivity {
                     getTextsFromAnnotationTask(annotTask, textContents);
                     Log.d(TAG, "Text contents size: " + textContents.size());
                     // Use detected texts and feed them to topic detection API
-                    Request request = getUclassifyRequest(textContents, topics, uClassifyRequestMode.CLASSIFY);
+                    Request request = getUclassifyRequest(textContents, uClassifyRequestMode.CLASSIFY);
                     //TODO: find a way to wrap okHttp call on a Task implementation for better chaining
                     client.newCall(request).enqueue(new Callback() {
                         @Override
@@ -185,15 +185,35 @@ public class MainActivity extends AppCompatActivity {
                         }
                     });
                 }
-            }).continueWithTask(new Continuation<List<Task<JsonElement>>, Task<List<Task<Void>>>>() {
+            }).continueWith(new Continuation<List<Task<JsonElement>>, Void>() {
                 @Override
-                public Task<List<Task<Void>>> then(@NonNull @NotNull Task<List<Task<JsonElement>>> task) throws Exception {
+                public Void then(@NonNull @NotNull Task<List<Task<JsonElement>>> task) throws Exception {
+                    Request keywordsRequest = getUclassifyRequest(textContents, uClassifyRequestMode.KEYWORDS);
+                    client.newCall(keywordsRequest).enqueue(new Callback() {
+                        @Override
+                        public void onFailure(@NotNull Call call, @NotNull IOException e) {
+                            Log.e(TAG, e.toString());
+                        }
+
+                        @Override
+                        public void onResponse(@NotNull Call call, @NotNull Response response) throws IOException {
+                            try {
+                                processKeywordsApiResponse(response.body().string(), topics, keywords);
+                            } catch (JSONException e) {
+                                e.printStackTrace();
+                            }
+                        }
+                    });
+                    return null;
+                }
+            }).continueWithTask(new Continuation<Void, Task<List<Task<Void>>>>() {
+                @Override
+                public Task<List<Task<Void>>> then(@NonNull @NotNull Task<Void> task) throws Exception {
                     String collectionId = randomId();
                     Task<List<Task<Void>>> uploadDataToDbTask = getUploadToDatabase(randomId(), topics, textContents, imageUris);
                     return uploadDataToDbTask;
                 }
             });
-
         } catch (Exception e) {
             Log.e("MainActivity", e.toString());
         }
@@ -263,9 +283,9 @@ public class MainActivity extends AppCompatActivity {
 
     /**
      * @param collectionId name of the "directory" in firebase for the new collection of notes
-     * @param topics list of topics with 1:1 index matching to other lists
-     * @param textContent list of text contents with 1:1 index matching to other lists
-     * @param imageUris list of image paths to Firebase Storage database with 1:1 index matches
+     * @param topics reference list of topics with 1:1 index matching to other lists
+     * @param textContent reference list of text contents with 1:1 index matching to other lists
+     * @param imageUris reference list of image paths to Firebase Storage database with 1:1 index matches
      * @return Meta-task of database uploading tasks
      */
     private Task<List<Task<Void>>> getUploadToDatabase(String collectionId, List<String> topics, List<String> textContent, List<String> imageUris) {
@@ -280,7 +300,6 @@ public class MainActivity extends AppCompatActivity {
         for (int i=0; i<topics.size(); i++) {
             String noteId = randomId();
             noteReference = collectionReference.child(noteId);
-            Log.d(TAG, topics.get(i));
             uploadTasksList.add(noteReference.child("topic").setValue(topics.get(i)));
             uploadTasksList.add(noteReference.child("text").setValue(textContent.get(i)));
             uploadTasksList.add(noteReference.child("image").setValue(imageUris.get(i)));
@@ -354,7 +373,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     //Calls an API to get the topic of a specific block of text
-    public Request getUclassifyRequest(List<String> detectedTexts, List<String> topics, uClassifyRequestMode reqMode) {
+    public Request getUclassifyRequest(List<String> detectedTexts, uClassifyRequestMode reqMode) {
         JSONArray texts = new JSONArray();
         for (String item : detectedTexts) {
             texts.put(item);
@@ -405,7 +424,6 @@ public class MainActivity extends AppCompatActivity {
                 JSONObject topicJson = null;
                 try {
                     topicJson = classifications.getJSONObject(i);
-                    Log.d(TAG, topicJson.toString());
                     double weight = topicJson.getDouble("p");
                     if (weight > max) {
                         max = weight;
@@ -445,6 +463,32 @@ public class MainActivity extends AppCompatActivity {
             Log.d(TAG, String.format("%s%n", text));
             System.out.format("%s%n", annotation.get("text").getAsString());
             textContents.add(text);
+        }
+    }
+
+    private void processKeywordsApiResponse(String data, List<String> topics, List<List<String>> keywords) throws JSONException {
+        Log.d(TAG,"keyword data: " + data);
+        JSONArray responseArray = new JSONArray(data);
+        Log.d(TAG, "Keypwrds topics: " + topics.toString());
+        for (int j = 0; j<topics.size(); j++) {
+            JSONArray individualTextArray = responseArray.getJSONArray(j);
+            individualTextArray = responseArray.getJSONArray(j);
+            Log.d(TAG, topics.toString());
+            String noteTopic = topics.get(j);
+            List<String> noteKeywords = new LinkedList<>();
+            //get general topic from topic result
+            noteTopic = noteTopic.substring(0, noteTopic.indexOf("_"));
+            Log.d(TAG, "Keyword topic: " + noteTopic);
+            for (int i = 0; i<individualTextArray.length(); i++) {
+                JSONObject responseObj = individualTextArray.getJSONObject(0);
+
+                if (responseObj.getString("className").contains(noteTopic)) {
+                    String keyword = responseObj.getString("keyword");
+                    noteKeywords.add(keyword);
+                    Log.d(TAG, "Keyword: " + keyword);
+                }
+                keywords.add(noteKeywords);
+            }
         }
     }
 }
