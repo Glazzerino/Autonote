@@ -26,6 +26,7 @@ import com.geniusscansdk.scanflow.ScanConfiguration;
 import com.geniusscansdk.scanflow.ScanFlow;
 import com.geniusscansdk.scanflow.ScanResult;
 import com.google.android.gms.tasks.Continuation;
+import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
@@ -139,11 +140,53 @@ public class MainActivity extends AppCompatActivity {
             scans = result.scans;
             fragment = ScanResultsFragment.newInstance(scans);
             startFragment();
-            uploadImages();
+
+            List<String> extractedText = new LinkedList<>();
+            Task<List<Task<Uri>>> uploadTasks = getUploadImageTasks();
+            Task<List<Task<JsonElement>>> annotationTasks = getAnnotationTasks();
+
+            uploadTasks.continueWithTask(new Continuation<List<Task<Uri>>, Task<List<Task<JsonElement>>>>() {
+                @Override
+                public Task<List<Task<JsonElement>>> then(@NonNull @NotNull Task<List<Task<Uri>>> tasks) throws Exception {
+                    Toasty.success(context, "Files uploaded to the cloud!", Toast.LENGTH_LONG).show();
+                    return annotationTasks;
+                }
+            }).addOnCompleteListener(new OnCompleteListener<List<Task<JsonElement>>>() {
+                @Override
+                public void onComplete(@NonNull @NotNull Task<List<Task<JsonElement>>> annotTask) {
+                    List<String> textContents = getTextsFromAnnotationTask(annotTask);
+                    Log.d(TAG, "Text contents size: " + textContents.size());
+                    // Use detected texts and feed them to topic detection API
+                    List<String> topics = new ArrayList<>();
+                    Request request = getTopicRequest(textContents, topics);
+                    OkHttpClient client = new OkHttpClient();
+
+                    client.newCall(request).enqueue(new Callback() {
+                        @Override
+                        public void onFailure(@NotNull Call call, @NotNull IOException e) {
+                            Log.e(TAG, e.toString());
+                        }
+
+                        @Override
+                        public void onResponse(@NotNull Call call, @NotNull Response response) throws IOException {
+                            String data = response.body().string();
+                            Log.d(TAG, data);
+                            //Iterate over results gotten for each text provided to the API
+                            //More info about the API here: https://www.uclassify.com/docs/restapi
+                            processTopicApiResponse(data, topics);
+                            for (String topic : topics) {
+                                Log.d(TAG, "Topic: " + topic);
+                            }
+                        }
+                    });
+                }
+            });
+
         } catch (Exception e) {
             Log.e("MainActivity", e.toString());
         }
     }
+
     private void initScanner() {
         ScanConfiguration scanConfiguration = new ScanConfiguration();
         scanConfiguration.multiPage = true;
@@ -158,8 +201,8 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    private void uploadImages() {
-        Toasty.info(context, "Uploading scans to the cloud", Toast.LENGTH_LONG).show();
+    private Task<List<Task<Uri>>> getUploadImageTasks() {
+        Toasty.info(context, "Uploading scans to the cloud", Toast.LENGTH_SHORT).show();
         List<String> imagesUris = new ArrayList<>();
         String newNoteCollectionId = String.valueOf(Math.abs(new Random().nextLong()));
         StorageReference newNoteStorage = imageStorage
@@ -196,27 +239,19 @@ public class MainActivity extends AppCompatActivity {
             tasks.add((Task) upload);
         }
 
-        //Use all stored tasks in the task list and listen to when all uploads have been completed
-        Task<List<Task<?>>> allUploads = Tasks.whenAllComplete(tasks);
-        allUploads.addOnSuccessListener(new OnSuccessListener<List<Task<?>>>() {
-            @Override
-            public void onSuccess(List<Task<?>> tasks) {
-                Toasty.success(context, "All images uploaded!",Toasty.LENGTH_LONG).show();
-
-                processImages(imagesUris);
-            }
-        });
+        //Use all stored tasks in the task list
+        Task<List<Task<Uri>>> allUploads = Tasks.whenAllSuccess(tasks);
+        return allUploads;
     }
 
     /**
-     * @param imagesUris paths on Firebase Storage that point to each individual image. Used for
-     *                   Note object construction
+     *
      * @return a list of Note objects for later firebase realtime database uploading
      * @see <a href="https://firebase.google.com/docs/ml/android/recognize-text?authuser=0">
      *     Firebase Vision API docs</a>
      */
-    private void processImages(List<String> imagesUris) {
-        List<Task<JsonElement>> annotationTasks = new ArrayList<>();
+    private Task<List<Task<JsonElement>>> getAnnotationTasks() {
+        List<Task<JsonElement>> annotationTasksList = new ArrayList<>();
         List<String> textContents = new ArrayList<>();
 
         for (ScanResult.Scan scan : scans) {
@@ -231,30 +266,11 @@ public class MainActivity extends AppCompatActivity {
                     Log.e(TAG, "Error getting transcription: "+ e.toString());
                 }
             });
-            annotationTasks.add(annotationTask);
+            annotationTasksList.add(annotationTask);
         }
         //this object accumulates all tasks' results and listens to them as a single result
-        Task<List<Task<JsonElement>>> allAnnotations = Tasks.whenAllSuccess(annotationTasks);
-        //Wait until all tasks have been completed and then get resulting text
-        allAnnotations.addOnSuccessListener(new OnSuccessListener<List<Task<JsonElement>>>() {
-            @Override
-            public void onSuccess(List<Task<JsonElement>> tasks) {
-                //Add each task's (image's) text to an arraylist
-                for (Object rawObject : tasks) {
-                    JsonArray json = (JsonArray) rawObject;
-                    JsonObject annotation = json.get(0)
-                            .getAsJsonObject()
-                            .get("fullTextAnnotation")
-                            .getAsJsonObject();
-                    String text = annotation.get("text").toString();
-                    Log.d(TAG, String.format("%s%n", text));
-                    System.out.format("%s%n", annotation.get("text").getAsString());
-                    textContents.add(text);
-                }
-                getTopics(textContents);
-            }
-        });
-
+        Task<List<Task<JsonElement>>> allAnnotationTasks = Tasks.whenAllSuccess(annotationTasksList);
+        return allAnnotationTasks;
     }
 
     @NotNull
@@ -294,8 +310,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     //Calls an API to get the topic of a specific block of text
-    public void getTopics(List<String> detectedTexts) {
-        List<String> topics = new ArrayList<>();
+    public Request getTopicRequest(List<String> detectedTexts, List<String> topics) {
         OkHttpClient client = new OkHttpClient();
         JSONArray texts = new JSONArray();
         for (String item : detectedTexts) {
@@ -316,59 +331,45 @@ public class MainActivity extends AppCompatActivity {
                 .addHeader("Authorization", "Token " + getString(R.string.uclassify_readkey))
                 .build();
 
-        client.newCall(request).enqueue(new Callback() {
-            @Override
-            public void onFailure(@NotNull Call call, @NotNull IOException e) {
-                Log.e(TAG, e.toString());
+        return request;
+    }
+
+    private List<String> processTopicApiResponse(String data, List<String> topics) {
+        JSONArray textsResults = null;
+        try {
+            textsResults = new JSONArray(data);
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+
+        for (int j = 0; j<textsResults.length(); j++) {
+            JSONArray classifications = null;
+            try {
+                classifications = textsResults.getJSONObject(j).getJSONArray("classification");
+            } catch (JSONException e) {
+                e.printStackTrace();
             }
 
-            @Override
-            public void onResponse(@NotNull Call call, @NotNull Response response) throws IOException {
-                String data = response.body().string();
-
-                    //Iterate over results gotten for each text provided to the API
-                    //More info about the API here: https://www.uclassify.com/docs/restapi
-                JSONArray textsResults = null;
+            //Iterate over each topic and extract the one with the most weight
+            double max = 0;
+            String maxTopic = new String();
+            for (int i=0; i<classifications.length(); i++) {
+                JSONObject topicJson = null;
                 try {
-                    textsResults = new JSONArray(data);
+                    topicJson = classifications.getJSONObject(i);
+                    double weight = topicJson.getDouble("p");
+                    if (weight > max) {
+                        max = weight;
+                        maxTopic = topicJson.getString("className");
+                    }
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }
 
-                Log.d(TAG, textsResults.toString());
-
-                    for (int j = 0; j<textsResults.length(); j++) {
-                        JSONArray classifications = null;
-                        try {
-                            classifications = textsResults.getJSONObject(j).getJSONArray("classification");
-                        } catch (JSONException e) {
-                            e.printStackTrace();
-                        }
-
-                        //Iterate over each topic and extract the one with the most weight
-                        double max = 0;
-                        String maxTopic = new String();
-                        for (int i=0; i<classifications.length(); i++) {
-                            JSONObject topicJson = null;
-                            try {
-                                topicJson = classifications.getJSONObject(i);
-                                double weight = topicJson.getDouble("p");
-                                if (weight > max) {
-                                    max = weight;
-                                    maxTopic = topicJson.getString("className");
-                                }
-                            } catch (JSONException e) {
-                                e.printStackTrace();
-                            }
-
-                        }
-                        topics.add(maxTopic);
-                    }
-                    for (String topic : topics) {
-                        Log.d(TAG, "Topic: " + topic);
-                    }
-                }
-        });
+            }
+            topics.add(maxTopic);
+        }
+        return topics;
     }
 
     //Utility function
@@ -379,5 +380,21 @@ public class MainActivity extends AppCompatActivity {
         imageBitmap.compress(Bitmap.CompressFormat.JPEG, 100, outputStream);
         byte[] byteArray = outputStream.toByteArray();
         return byteArray;
+    }
+    //parses the response jsonElement into a list
+    private List<String> getTextsFromAnnotationTask(Task<List<Task<JsonElement>>> tasks) {
+        List<String> textContents = new LinkedList<>();
+        for (Object rawObject : tasks.getResult()) {
+            JsonArray json = (JsonArray) rawObject;
+            JsonObject annotation = json.get(0)
+                    .getAsJsonObject()
+                    .get("fullTextAnnotation")
+                    .getAsJsonObject();
+            String text = annotation.get("text").toString();
+            Log.d(TAG, String.format("%s%n", text));
+            System.out.format("%s%n", annotation.get("text").getAsString());
+            textContents.add(text);
+        }
+        return textContents;
     }
 }
