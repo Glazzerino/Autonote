@@ -20,6 +20,7 @@ import androidx.fragment.app.FragmentManager;
 import com.fbu.autonote.R;
 import com.fbu.autonote.fragments.NotesFragment;
 import com.fbu.autonote.fragments.ScanResultsFragment;
+import com.fbu.autonote.utilities.uClassifyRequestMode;
 import com.geniusscansdk.core.GeniusScanSDK;
 import com.geniusscansdk.core.LicenseException;
 import com.geniusscansdk.scanflow.ScanConfiguration;
@@ -56,7 +57,9 @@ import org.json.JSONObject;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Random;
@@ -82,6 +85,7 @@ public class MainActivity extends AppCompatActivity {
     DatabaseReference databaseReference;
     String userId;
     StorageReference imageStorage;
+    OkHttpClient client;
 
     public static final MediaType JSON
             = MediaType.get("application/json; charset=utf-8");
@@ -98,6 +102,7 @@ public class MainActivity extends AppCompatActivity {
         databaseReference = FirebaseDatabase.getInstance().getReference(userId);
         imageStorage = FirebaseStorage.getInstance().getReference(userId);
         firebaseFunctions = FirebaseFunctions.getInstance();
+        client = new OkHttpClient();
 
         //Init GeniusSDK
         try {
@@ -135,15 +140,17 @@ public class MainActivity extends AppCompatActivity {
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         try {
-            //Get results from scan and launch the scanResult fragment to upload data
             ScanResult result = ScanFlow.getScanResultFromActivityResult(data);
             scans = result.scans;
             fragment = ScanResultsFragment.newInstance(scans);
             startFragment();
 
-            List<String> extractedText = new LinkedList<>();
-            Task<List<Task<Uri>>> uploadTasks = getUploadImageTasks();
+            String newNoteCollectionId = randomId();
+            List<String> imageUris = new ArrayList<>();
+            Task<List<Task<Uri>>> uploadTasks = getUploadImageTasks(newNoteCollectionId, imageUris);
             Task<List<Task<JsonElement>>> annotationTasks = getAnnotationTasks();
+            List<String> topics = new ArrayList<>();
+            List<String> textContents = new ArrayList<>();
 
             uploadTasks.continueWithTask(new Continuation<List<Task<Uri>>, Task<List<Task<JsonElement>>>>() {
                 @Override
@@ -154,13 +161,11 @@ public class MainActivity extends AppCompatActivity {
             }).addOnCompleteListener(new OnCompleteListener<List<Task<JsonElement>>>() {
                 @Override
                 public void onComplete(@NonNull @NotNull Task<List<Task<JsonElement>>> annotTask) {
-                    List<String> textContents = getTextsFromAnnotationTask(annotTask);
+                    getTextsFromAnnotationTask(annotTask, textContents);
                     Log.d(TAG, "Text contents size: " + textContents.size());
                     // Use detected texts and feed them to topic detection API
-                    List<String> topics = new ArrayList<>();
-                    Request request = getTopicRequest(textContents, topics);
-                    OkHttpClient client = new OkHttpClient();
-
+                    Request request = getUclassifyRequest(textContents, topics, uClassifyRequestMode.CLASSIFY);
+                    //TODO: find a way to wrap okHttp call on a Task implementation for better chaining
                     client.newCall(request).enqueue(new Callback() {
                         @Override
                         public void onFailure(@NotNull Call call, @NotNull IOException e) {
@@ -180,11 +185,26 @@ public class MainActivity extends AppCompatActivity {
                         }
                     });
                 }
+            }).continueWithTask(new Continuation<List<Task<JsonElement>>, Task<List<Task<Void>>>>() {
+                @Override
+                public Task<List<Task<Void>>> then(@NonNull @NotNull Task<List<Task<JsonElement>>> task) throws Exception {
+                    String collectionId = randomId();
+                    Task<List<Task<Void>>> uploadDataToDbTask = getUploadToDatabase(randomId(), topics, textContents, imageUris);
+                    return uploadDataToDbTask;
+                }
             });
 
         } catch (Exception e) {
             Log.e("MainActivity", e.toString());
         }
+    }
+
+    /**
+     * @return a random 64-bit number string
+     */
+    @NotNull
+    private String randomId() {
+        return String.valueOf(Math.abs(new Random().nextLong()));
     }
 
     private void initScanner() {
@@ -201,13 +221,10 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    private Task<List<Task<Uri>>> getUploadImageTasks() {
+    private Task<List<Task<Uri>>> getUploadImageTasks(String noteCollectionId, List<String> imageUris) {
         Toasty.info(context, "Uploading scans to the cloud", Toast.LENGTH_SHORT).show();
-        List<String> imagesUris = new ArrayList<>();
-        String newNoteCollectionId = String.valueOf(Math.abs(new Random().nextLong()));
         StorageReference newNoteStorage = imageStorage
-                .child(newNoteCollectionId);
-
+                .child(noteCollectionId);
         List<Task<Uri>> tasks = new ArrayList<>();
 
         //Using a liked list since byte arrays should need more space and thus more memory allocation
@@ -233,7 +250,7 @@ public class MainActivity extends AppCompatActivity {
                 @Override
                 public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
                     Log.d(TAG, "Success uploading file " + imageFile.getName());
-                    imagesUris.add(newNoteStorage.getPath());
+                    imageUris.add(newNoteStorage.getPath());
                 }
             });
             tasks.add((Task) upload);
@@ -245,14 +262,41 @@ public class MainActivity extends AppCompatActivity {
     }
 
     /**
-     *
+     * @param collectionId name of the "directory" in firebase for the new collection of notes
+     * @param topics list of topics with 1:1 index matching to other lists
+     * @param textContent list of text contents with 1:1 index matching to other lists
+     * @param imageUris list of image paths to Firebase Storage database with 1:1 index matches
+     * @return Meta-task of database uploading tasks
+     */
+    private Task<List<Task<Void>>> getUploadToDatabase(String collectionId, List<String> topics, List<String> textContent, List<String> imageUris) {
+        DatabaseReference collectionReference = databaseReference.child(collectionId);
+
+        SimpleDateFormat ISO_8601_FORMAT = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:sss'Z'");
+        String nowDate = ISO_8601_FORMAT.format(new Date());
+
+        collectionReference.child("date").setValue(nowDate);
+        DatabaseReference noteReference;
+        List<Task<Void>> uploadTasksList = new ArrayList<>();
+        for (int i=0; i<topics.size(); i++) {
+            String noteId = randomId();
+            noteReference = collectionReference.child(noteId);
+            Log.d(TAG, topics.get(i));
+            uploadTasksList.add(noteReference.child("topic").setValue(topics.get(i)));
+            uploadTasksList.add(noteReference.child("text").setValue(textContent.get(i)));
+            uploadTasksList.add(noteReference.child("image").setValue(imageUris.get(i)));
+        }
+        Task<List<Task<Void>>> uploadTasks = Tasks.whenAllSuccess(uploadTasksList);
+        return uploadTasks;
+    }
+
+    /**
      * @return a list of Note objects for later firebase realtime database uploading
      * @see <a href="https://firebase.google.com/docs/ml/android/recognize-text?authuser=0">
      *     Firebase Vision API docs</a>
      */
     private Task<List<Task<JsonElement>>> getAnnotationTasks() {
+
         List<Task<JsonElement>> annotationTasksList = new ArrayList<>();
-        List<String> textContents = new ArrayList<>();
 
         for (ScanResult.Scan scan : scans) {
             byte[] byteArrayImage = getByteArray(scan.enhancedImageFile);
@@ -310,8 +354,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     //Calls an API to get the topic of a specific block of text
-    public Request getTopicRequest(List<String> detectedTexts, List<String> topics) {
-        OkHttpClient client = new OkHttpClient();
+    public Request getUclassifyRequest(List<String> detectedTexts, List<String> topics, uClassifyRequestMode reqMode) {
         JSONArray texts = new JSONArray();
         for (String item : detectedTexts) {
             texts.put(item);
@@ -323,9 +366,12 @@ public class MainActivity extends AppCompatActivity {
             e.printStackTrace();
         }
 
+        String url = getString(R.string.uclassify_taxonomy_url) +
+                (reqMode == uClassifyRequestMode.CLASSIFY ? "classify" : "keywords");
+
         RequestBody body = RequestBody.create(JSON, bodyJson.toString());
         Request request = new Request.Builder()
-                .url("https://api.uclassify.com/v1/uClassify/Topics/classify")
+                .url(url)
                 .post(body)
                 .addHeader("Content-Type", "application/json")
                 .addHeader("Authorization", "Token " + getString(R.string.uclassify_readkey))
@@ -335,6 +381,8 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private List<String> processTopicApiResponse(String data, List<String> topics) {
+        //Get json objects from the response gotten from uClassify
+        //More info about response format here: https://uclassify.com/browse/uclassify/iab-taxonomy?input=Text
         JSONArray textsResults = null;
         try {
             textsResults = new JSONArray(data);
@@ -357,6 +405,7 @@ public class MainActivity extends AppCompatActivity {
                 JSONObject topicJson = null;
                 try {
                     topicJson = classifications.getJSONObject(i);
+                    Log.d(TAG, topicJson.toString());
                     double weight = topicJson.getDouble("p");
                     if (weight > max) {
                         max = weight;
@@ -365,7 +414,6 @@ public class MainActivity extends AppCompatActivity {
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }
-
             }
             topics.add(maxTopic);
         }
@@ -381,9 +429,12 @@ public class MainActivity extends AppCompatActivity {
         byte[] byteArray = outputStream.toByteArray();
         return byteArray;
     }
-    //parses the response jsonElement into a list
-    private List<String> getTextsFromAnnotationTask(Task<List<Task<JsonElement>>> tasks) {
-        List<String> textContents = new LinkedList<>();
+
+    /**
+     * @param tasks Task container of the annotation tasks return by the getAnnotationTasks method
+     * @param textContents reference to the string list where text contents will be dumped to
+     */
+    private void getTextsFromAnnotationTask(Task<List<Task<JsonElement>>> tasks, List<String> textContents) {
         for (Object rawObject : tasks.getResult()) {
             JsonArray json = (JsonArray) rawObject;
             JsonObject annotation = json.get(0)
@@ -395,6 +446,5 @@ public class MainActivity extends AppCompatActivity {
             System.out.format("%s%n", annotation.get("text").getAsString());
             textContents.add(text);
         }
-        return textContents;
     }
 }
