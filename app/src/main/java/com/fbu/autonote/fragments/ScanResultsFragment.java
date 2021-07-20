@@ -66,7 +66,7 @@ public class ScanResultsFragment extends Fragment {
     @Override
     public void onViewCreated(@NonNull @NotNull View view, @Nullable @org.jetbrains.annotations.Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        //Setup recyclervie, adapter and manager
+        //Setup recyclerview, adapter and manager
         progressIndicator = view.findViewById(R.id.progressIndicator);
         progressIndicator.show();
         rvScanResults = view.findViewById(R.id.rvScanResults);

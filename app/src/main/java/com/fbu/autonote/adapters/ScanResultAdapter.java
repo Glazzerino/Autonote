@@ -53,7 +53,7 @@ public class ScanResultAdapter extends RecyclerView.Adapter<ScanResultAdapter.Vi
         return scans.size();
     }
 
-    public class ViewHolder extends RecyclerView.ViewHolder {
+    public static class ViewHolder extends RecyclerView.ViewHolder {
         ImageView ivScanResultPreview;
         TextView tvPositionResult;
         Bitmap scanBitmap;

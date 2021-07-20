@@ -19,7 +19,7 @@ import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 
 import com.fbu.autonote.R;
-import com.fbu.autonote.fragments.NotesFragment;
+import com.fbu.autonote.fragments.HomeFragment;
 import com.fbu.autonote.fragments.ScanResultsFragment;
 import com.fbu.autonote.models.Note;
 import com.fbu.autonote.utilities.uClassifyRequestMode;
@@ -29,7 +29,6 @@ import com.geniusscansdk.scanflow.ScanConfiguration;
 import com.geniusscansdk.scanflow.ScanFlow;
 import com.geniusscansdk.scanflow.ScanResult;
 import com.google.android.gms.tasks.Continuation;
-import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
@@ -122,7 +121,7 @@ public class MainActivity extends AppCompatActivity {
             public boolean onNavigationItemSelected(@NonNull @NotNull MenuItem item) {
                 switch (item.getItemId()) {
                     case R.id.itemNotes:
-                        fragment = NotesFragment.newInstance(context);
+                        fragment = HomeFragment.newInstance(context);
                         break;
                     case R.id.itemScan:
                         /**
