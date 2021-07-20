@@ -9,6 +9,7 @@ import android.os.Bundle;
 import android.util.Base64;
 import android.util.Log;
 import android.view.MenuItem;
+import android.view.View;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -20,6 +21,7 @@ import androidx.fragment.app.FragmentManager;
 import com.fbu.autonote.R;
 import com.fbu.autonote.fragments.NotesFragment;
 import com.fbu.autonote.fragments.ScanResultsFragment;
+import com.fbu.autonote.models.Note;
 import com.fbu.autonote.utilities.uClassifyRequestMode;
 import com.geniusscansdk.core.GeniusScanSDK;
 import com.geniusscansdk.core.LicenseException;
@@ -146,26 +148,26 @@ public class MainActivity extends AppCompatActivity {
             startFragment();
 
             String newNoteCollectionId = randomId();
-            List<String> imageUris = new ArrayList<>();
-            Task<List<Task<Uri>>> uploadTasks = getUploadImageTasks(newNoteCollectionId, imageUris);
+            List<Note> newNotes = new ArrayList<>();
+            Task<List<Task<Uri>>> uploadTasks = getUploadImageTasks(newNoteCollectionId, newNotes);
             Task<List<Task<JsonElement>>> annotationTasks = getAnnotationTasks();
             List<String> topics = new ArrayList<>();
-            List<String> textContents = new ArrayList<>();
             List<List<String>> keywords = new ArrayList<>();
+
             uploadTasks.continueWithTask(new Continuation<List<Task<Uri>>, Task<List<Task<JsonElement>>>>() {
                 @Override
                 public Task<List<Task<JsonElement>>> then(@NonNull @NotNull Task<List<Task<Uri>>> tasks) throws Exception {
-                    Toasty.success(context, "Files uploaded to the cloud!", Toast.LENGTH_LONG).show();
+                    Toasty.info(context, "Files uploaded to the cloud!", Toast.LENGTH_LONG).show();
                     return annotationTasks;
                 }
-            }).addOnCompleteListener(new OnCompleteListener<List<Task<JsonElement>>>() {
+            }).continueWith(new Continuation<List<Task<JsonElement>>, Void>() {
                 @Override
-                public void onComplete(@NonNull @NotNull Task<List<Task<JsonElement>>> annotTask) {
-                    getTextsFromAnnotationTask(annotTask, textContents);
-                    Log.d(TAG, "Text contents size: " + textContents.size());
+                public Void then(@NonNull @NotNull Task<List<Task<JsonElement>>> annotTask) {
+                    getTextsFromAnnotationTask(annotTask, newNotes);
+                    Log.d(TAG, "New notes size: " + newNotes.size());
                     // Use detected texts and feed them to topic detection API
-                    Request request = getUclassifyRequest(textContents, uClassifyRequestMode.CLASSIFY);
-                    //TODO: find a way to wrap okHttp call on a Task implementation for better chaining
+                    Request request = getUclassifyRequest(newNotes, uClassifyRequestMode.CLASSIFY);
+                    //TODO: find a way to wrap okHttp call in a Task implementation for better chaining
                     client.newCall(request).enqueue(new Callback() {
                         @Override
                         public void onFailure(@NotNull Call call, @NotNull IOException e) {
@@ -176,47 +178,33 @@ public class MainActivity extends AppCompatActivity {
                         public void onResponse(@NotNull Call call, @NotNull Response response) throws IOException {
                             String data = response.body().string();
                             Log.d(TAG, data);
-                            //Iterate over results gotten for each text provided to the API
-                            //More info about the API here: https://www.uclassify.com/docs/restapi
-                            processTopicApiResponse(data, topics);
-                            for (String topic : topics) {
-                                Log.d(TAG, "Topic: " + topic);
+                            processTopicApiResponse(data, newNotes);
+                            for (Note notes : newNotes) {
+                                Log.d(TAG, "Topic: " + notes.getTopic());
                             }
-                        }
-                    });
-                }
-            }).continueWith(new Continuation<List<Task<JsonElement>>, Void>() {
-                @Override
-                public Void then(@NonNull @NotNull Task<List<Task<JsonElement>>> task) throws Exception {
-                    Request keywordsRequest = getUclassifyRequest(textContents, uClassifyRequestMode.KEYWORDS);
-                    client.newCall(keywordsRequest).enqueue(new Callback() {
-                        @Override
-                        public void onFailure(@NotNull Call call, @NotNull IOException e) {
-                            Log.e(TAG, e.toString());
-                        }
-
-                        @Override
-                        public void onResponse(@NotNull Call call, @NotNull Response response) throws IOException {
-                            try {
-                                processKeywordsApiResponse(response.body().string(), topics, keywords);
-                            } catch (JSONException e) {
-                                e.printStackTrace();
-                            }
+                            //task chain continues from this function
+                            executeKeywordsApiCall(newNotes, newNoteCollectionId);
                         }
                     });
                     return null;
-                }
-            }).continueWithTask(new Continuation<Void, Task<List<Task<Void>>>>() {
-                @Override
-                public Task<List<Task<Void>>> then(@NonNull @NotNull Task<Void> task) throws Exception {
-                    String collectionId = randomId();
-                    Task<List<Task<Void>>> uploadDataToDbTask = getUploadToDatabase(randomId(), topics, textContents, imageUris);
-                    return uploadDataToDbTask;
                 }
             });
         } catch (Exception e) {
             Log.e("MainActivity", e.toString());
         }
+    }
+
+    private void doRealtimeDbUpload(String randomId, List<Note> newNotes) {
+        String collectionId = randomId();
+        Task<List<Task<Void>>> uploadDataToDbTask = getUploadToDatabase(randomId,  newNotes);
+        uploadDataToDbTask.addOnSuccessListener(new OnSuccessListener<List<Task<Void>>>() {
+            @Override
+            public void onSuccess(List<Task<Void>> tasks) {
+                fragment.getView().findViewById(R.id.progressIndicator)
+                        .setVisibility(View.INVISIBLE);
+                Toasty.success(context, "Notes processed!",Toasty.LENGTH_SHORT).show();
+            }
+        });
     }
 
     /**
@@ -241,7 +229,7 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    private Task<List<Task<Uri>>> getUploadImageTasks(String noteCollectionId, List<String> imageUris) {
+    private Task<List<Task<Uri>>> getUploadImageTasks(String noteCollectionId, List<Note> newNotes) {
         Toasty.info(context, "Uploading scans to the cloud", Toast.LENGTH_SHORT).show();
         StorageReference newNoteStorage = imageStorage
                 .child(noteCollectionId);
@@ -270,7 +258,10 @@ public class MainActivity extends AppCompatActivity {
                 @Override
                 public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
                     Log.d(TAG, "Success uploading file " + imageFile.getName());
-                    imageUris.add(newNoteStorage.getPath());
+                    Note note = new Note();
+                    note.setNoteId(randomId());
+                    note.setImageURL(imageReference.getPath());
+                    newNotes.add(note);
                 }
             });
             tasks.add((Task) upload);
@@ -283,26 +274,30 @@ public class MainActivity extends AppCompatActivity {
 
     /**
      * @param collectionId name of the "directory" in firebase for the new collection of notes
-     * @param topics reference list of topics with 1:1 index matching to other lists
-     * @param textContent reference list of text contents with 1:1 index matching to other lists
-     * @param imageUris reference list of image paths to Firebase Storage database with 1:1 index matches
+     * @param newNotes list of notes from which to pull data from
      * @return Meta-task of database uploading tasks
      */
-    private Task<List<Task<Void>>> getUploadToDatabase(String collectionId, List<String> topics, List<String> textContent, List<String> imageUris) {
-        DatabaseReference collectionReference = databaseReference.child(collectionId);
+    private Task<List<Task<Void>>> getUploadToDatabase(String collectionId, List<Note> newNotes) {
+
 
         SimpleDateFormat ISO_8601_FORMAT = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:sss'Z'");
         String nowDate = ISO_8601_FORMAT.format(new Date());
 
-        collectionReference.child("date").setValue(nowDate);
         DatabaseReference noteReference;
         List<Task<Void>> uploadTasksList = new ArrayList<>();
-        for (int i=0; i<topics.size(); i++) {
-            String noteId = randomId();
-            noteReference = collectionReference.child(noteId);
-            uploadTasksList.add(noteReference.child("topic").setValue(topics.get(i)));
-            uploadTasksList.add(noteReference.child("text").setValue(textContent.get(i)));
-            uploadTasksList.add(noteReference.child("image").setValue(imageUris.get(i)));
+        for (int i=0; i<newNotes.size(); i++) {
+            Note note = newNotes.get(i);
+            //add note as topic/collecitonId/noteId inside database filesystem
+            noteReference = databaseReference
+                    .child(note.getTopic())
+                    .child(collectionId)
+                    .child(note.getNoteId());
+
+            DatabaseReference keywords = noteReference.child("keywords");
+            for (String keyword : note.getKeywords()) {
+                noteReference.setValue(note.getKeywords());
+            }
+            uploadTasksList.add(noteReference.setValue(note));
         }
         Task<List<Task<Void>>> uploadTasks = Tasks.whenAllSuccess(uploadTasksList);
         return uploadTasks;
@@ -372,11 +367,17 @@ public class MainActivity extends AppCompatActivity {
             });
     }
 
-    //Calls an API to get the topic of a specific block of text
-    public Request getUclassifyRequest(List<String> detectedTexts, uClassifyRequestMode reqMode) {
+    /**
+     * @about Function fabricates a request object meant to get topic classification data
+     * @param newNotes list of notes which contain the raw text which will be classified
+     * @param reqMode enum object that determines the API call mode. More info here: <a href="https://uclassify.com/docs/restapi#readcalls-classify"/>
+     * @return request object
+     */
+    public Request getUclassifyRequest(List<Note> newNotes, uClassifyRequestMode reqMode) {
         JSONArray texts = new JSONArray();
-        for (String item : detectedTexts) {
-            texts.put(item);
+        for (Note note : newNotes) {
+            String rawText = note.getTextContent();
+            texts.put(rawText);
         }
         JSONObject bodyJson = new JSONObject();
         try {
@@ -395,11 +396,10 @@ public class MainActivity extends AppCompatActivity {
                 .addHeader("Content-Type", "application/json")
                 .addHeader("Authorization", "Token " + getString(R.string.uclassify_readkey))
                 .build();
-
         return request;
     }
 
-    private List<String> processTopicApiResponse(String data, List<String> topics) {
+    private void processTopicApiResponse(String data, List<Note> newNotes) {
         //Get json objects from the response gotten from uClassify
         //More info about response format here: https://uclassify.com/browse/uclassify/iab-taxonomy?input=Text
         JSONArray textsResults = null;
@@ -433,9 +433,10 @@ public class MainActivity extends AppCompatActivity {
                     e.printStackTrace();
                 }
             }
-            topics.add(maxTopic);
+            //Trim the rest of the topic string up to the underscore
+            maxTopic = maxTopic.substring(0, maxTopic.indexOf("_"));
+            newNotes.get(j).setTopic(maxTopic);
         }
-        return topics;
     }
 
     //Utility function
@@ -450,9 +451,10 @@ public class MainActivity extends AppCompatActivity {
 
     /**
      * @param tasks Task container of the annotation tasks return by the getAnnotationTasks method
-     * @param textContents reference to the string list where text contents will be dumped to
+     * @param newNotes reference to list of note objects
      */
-    private void getTextsFromAnnotationTask(Task<List<Task<JsonElement>>> tasks, List<String> textContents) {
+    private void getTextsFromAnnotationTask(Task<List<Task<JsonElement>>> tasks, List<Note> newNotes) {
+        int i=0;
         for (Object rawObject : tasks.getResult()) {
             JsonArray json = (JsonArray) rawObject;
             JsonObject annotation = json.get(0)
@@ -462,33 +464,56 @@ public class MainActivity extends AppCompatActivity {
             String text = annotation.get("text").toString();
             Log.d(TAG, String.format("%s%n", text));
             System.out.format("%s%n", annotation.get("text").getAsString());
-            textContents.add(text);
+            newNotes.get(i++).setTextContent(text);
         }
     }
+    private void executeKeywordsApiCall(List<Note> newNotes, String newNoteCollectionId) {
+        Request keywordsRequest = getUclassifyRequest(newNotes, uClassifyRequestMode.KEYWORDS);
+        client.newCall(keywordsRequest).enqueue(new Callback() {
+            @Override
+            public void onFailure(@NotNull Call call, @NotNull IOException e) {
+                Log.e(TAG, e.toString());
+            }
 
-    private void processKeywordsApiResponse(String data, List<String> topics, List<List<String>> keywords) throws JSONException {
+            @Override
+            public void onResponse(@NotNull Call call, @NotNull Response response) throws IOException {
+                try {
+                    processKeywordsApiResponse(response.body().string(),
+                            newNotes,
+                            newNoteCollectionId);
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+            }
+        });
+    }
+    /**
+     * @param data raw response string from the keywords API call
+     * @throws JSONException
+     */
+    private void processKeywordsApiResponse(String data, List<Note> newNotes, String newNoteCollectionId) throws JSONException {
         Log.d(TAG,"keyword data: " + data);
         JSONArray responseArray = new JSONArray(data);
-        Log.d(TAG, "Keypwrds topics: " + topics.toString());
-        for (int j = 0; j<topics.size(); j++) {
+
+        for (int j = 0; j<newNotes.size(); j++) {
             JSONArray individualTextArray = responseArray.getJSONArray(j);
             individualTextArray = responseArray.getJSONArray(j);
-            Log.d(TAG, topics.toString());
-            String noteTopic = topics.get(j);
-            List<String> noteKeywords = new LinkedList<>();
+            String noteTopic = newNotes.get(j).getTopic();
+
             //get general topic from topic result
-            noteTopic = noteTopic.substring(0, noteTopic.indexOf("_"));
+            noteTopic = noteTopic.substring(0, noteTopic.indexOf("_")+1);
             Log.d(TAG, "Keyword topic: " + noteTopic);
             for (int i = 0; i<individualTextArray.length(); i++) {
-                JSONObject responseObj = individualTextArray.getJSONObject(0);
+                Note note = newNotes.get(j);
+                JSONObject responseObj = individualTextArray.getJSONObject(i);
 
                 if (responseObj.getString("className").contains(noteTopic)) {
                     String keyword = responseObj.getString("keyword");
-                    noteKeywords.add(keyword);
+                    note.addKeyword(keyword);
                     Log.d(TAG, "Keyword: " + keyword);
                 }
-                keywords.add(noteKeywords);
             }
         }
+        doRealtimeDbUpload(newNoteCollectionId, newNotes);
     }
 }
