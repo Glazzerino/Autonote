@@ -8,8 +8,8 @@
 
     <ImageView
         android:id="@+id/ivResultPreview"
-        android:layout_width="100dp"
-        android:layout_height="150dp"
+        android:layout_width="150dp"
+        android:layout_height="200dp"
         android:maxWidth="300dp"
         android:maxHeight="300dp"
         app:layout_constraintEnd_toEndOf="parent"

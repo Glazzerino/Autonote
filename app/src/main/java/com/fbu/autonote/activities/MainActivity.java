@@ -153,6 +153,7 @@ public class MainActivity extends AppCompatActivity {
             List<String> topics = new ArrayList<>();
             List<List<String>> keywords = new ArrayList<>();
 
+            //This big chunk is the main chaining of tasks
             uploadTasks.continueWithTask(new Continuation<List<Task<Uri>>, Task<List<Task<JsonElement>>>>() {
                 @Override
                 public Task<List<Task<JsonElement>>> then(@NonNull @NotNull Task<List<Task<Uri>>> tasks) throws Exception {
@@ -160,6 +161,7 @@ public class MainActivity extends AppCompatActivity {
                     return annotationTasks;
                 }
             }).continueWith(new Continuation<List<Task<JsonElement>>, Void>() {
+                //After uploading the images we invoke the cloud function to get text from the images
                 @Override
                 public Void then(@NonNull @NotNull Task<List<Task<JsonElement>>> annotTask) {
                     getTextsFromAnnotationTask(annotTask, newNotes);
@@ -278,12 +280,11 @@ public class MainActivity extends AppCompatActivity {
      */
     private Task<List<Task<Void>>> getUploadToDatabase(String collectionId, List<Note> newNotes) {
 
-
         SimpleDateFormat ISO_8601_FORMAT = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:sss'Z'");
         String nowDate = ISO_8601_FORMAT.format(new Date());
-
         DatabaseReference noteReference;
         List<Task<Void>> uploadTasksList = new ArrayList<>();
+        //Iterate over each Note object to upload its data to the realtime database
         for (int i=0; i<newNotes.size(); i++) {
             Note note = newNotes.get(i);
             //add note as topic/collecitonId/noteId inside database filesystem
@@ -310,7 +311,7 @@ public class MainActivity extends AppCompatActivity {
     private Task<List<Task<JsonElement>>> getAnnotationTasks() {
 
         List<Task<JsonElement>> annotationTasksList = new ArrayList<>();
-
+        //Iterate over each scanned image and register an upload task
         for (ScanResult.Scan scan : scans) {
             byte[] byteArrayImage = getByteArray(scan.enhancedImageFile);
             JsonObject request = getAnnotationRequest(byteArrayImage);
@@ -493,7 +494,9 @@ public class MainActivity extends AppCompatActivity {
     private void processKeywordsApiResponse(String data, List<Note> newNotes, String newNoteCollectionId) throws JSONException {
         Log.d(TAG,"keyword data: " + data);
         JSONArray responseArray = new JSONArray(data);
-
+        //The keywords API call returns a JSON array for each text provided to it.
+        //Each of these arrays contains yet another array, which has 560 elements, a class name (topic),
+        // a keyword and a weight (confidence in topic)
         for (int j = 0; j<newNotes.size(); j++) {
             JSONArray individualTextArray = responseArray.getJSONArray(j);
             individualTextArray = responseArray.getJSONArray(j);

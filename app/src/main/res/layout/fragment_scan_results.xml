@@ -16,7 +16,7 @@
             android:layout_height="wrap_content"
             android:indeterminate="true"
             app:indeterminateAnimationType="disjoint"
-            app:indicatorColor="@color/emerald"
+            app:indicatorColor="@color/yellow_red"
             tools:trackColor="@color/yellow_red">
 
         </com.google.android.material.progressindicator.LinearProgressIndicator>
@@ -24,11 +24,10 @@
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/rvScanResults"
             android:layout_width="match_parent"
-            android:layout_height="648dp"
-            android:layout_below="@id/progressIndicator"
+            android:layout_height="match_parent"
+            android:layout_below="@+id/progressIndicator"
             android:layout_alignParentStart="true"
-            android:layout_alignParentTop="true"
             android:layout_marginStart="0dp"
-            android:layout_marginTop="0dp" />
+            android:layout_marginTop="2dp" />
     </RelativeLayout>
 </FrameLayout>

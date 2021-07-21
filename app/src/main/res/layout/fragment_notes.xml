@@ -13,7 +13,6 @@
         android:id="@+id/rvTopics"
         android:layout_width="match_parent"
         android:layout_height="622dp"
-        android:layout_below="@+id/textView"
         android:layout_alignParentEnd="true"
         android:layout_alignParentBottom="true"
         android:layout_marginTop="29dp"
