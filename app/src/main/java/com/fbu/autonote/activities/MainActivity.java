@@ -153,7 +153,7 @@ public class MainActivity extends AppCompatActivity {
             List<String> topics = new ArrayList<>();
             List<List<String>> keywords = new ArrayList<>();
 
-            //This big chunk is the main chaining of tasks
+            //Main chaining of tasks
             uploadTasks.continueWithTask(new Continuation<List<Task<Uri>>, Task<List<Task<JsonElement>>>>() {
                 @Override
                 public Task<List<Task<JsonElement>>> then(@NonNull @NotNull Task<List<Task<Uri>>> tasks) throws Exception {
