@@ -261,7 +261,13 @@ public class MainActivity extends AppCompatActivity {
                     Log.d(TAG, "Success uploading file " + imageFile.getName());
                     Note note = new Note();
                     note.setNoteId(randomId());
-                    note.setImageURL(imageReference.getPath());
+
+                    imageReference.getDownloadUrl().addOnSuccessListener(new OnSuccessListener<Uri>() {
+                        @Override
+                        public void onSuccess(Uri uri) {
+                            note.setImageURL(uri.toString());
+                        }
+                    });
                     newNotes.add(note);
                 }
             });
@@ -487,6 +493,7 @@ public class MainActivity extends AppCompatActivity {
             }
         });
     }
+
     /**
      * @param data raw response string from the keywords API call
      * @throws JSONException
@@ -508,8 +515,9 @@ public class MainActivity extends AppCompatActivity {
             for (int i = 0; i<individualTextArray.length(); i++) {
                 Note note = newNotes.get(j);
                 JSONObject responseObj = individualTextArray.getJSONObject(i);
-
-                if (responseObj.getString("className").contains(noteTopic)) {
+                String wordCandidate = responseObj.getString("keyword");
+                //if word is related to note topic and word is only made of alphabetic characters
+                if (responseObj.getString("className").contains(noteTopic) && isAlphabeticString(wordCandidate)) {
                     String keyword = responseObj.getString("keyword");
                     note.addKeyword(keyword);
                     Log.d(TAG, "Keyword: " + keyword);
@@ -517,5 +525,15 @@ public class MainActivity extends AppCompatActivity {
             }
         }
         doRealtimeDbUpload(newNoteCollectionId, newNotes);
+    }
+
+    //utility function to tell if a string is composed of only alphabetic characters
+    private boolean isAlphabeticString(String string) {
+        for (char c : string.toCharArray()) {
+            if (!Character.isLetter(c)) {
+                return false;
+            }
+        }
+        return true;
     }
 }

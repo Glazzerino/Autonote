@@ -1,6 +1,7 @@
 package com.fbu.autonote.adapters;
 
 import android.content.Context;
+import android.content.Intent;
 import android.graphics.Color;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -13,6 +14,7 @@ import androidx.appcompat.widget.AppCompatButton;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.fbu.autonote.R;
+import com.fbu.autonote.activities.NotesExploreActivity;
 
 import org.jetbrains.annotations.NotNull;
 import java.util.ArrayList;
@@ -61,7 +63,8 @@ public class TopicsAdapter extends RecyclerView.Adapter<TopicsAdapter.ViewHolder
             btnTopicBtn.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-
+                    int position = getAdapterPosition();
+                    goToNoteExploreAct(topics.get(position));
                 }
             });
         }
@@ -74,8 +77,10 @@ public class TopicsAdapter extends RecyclerView.Adapter<TopicsAdapter.ViewHolder
             btnTopicBtn.setText(topicStr);
         }
 
-        private void goToNoteExploreAct() {
-            
+        private void goToNoteExploreAct(String topic) {
+            Intent intent = new Intent(context, NotesExploreActivity.class);
+            intent.putExtra("topic", topic);
+            context.startActivity(intent);
         }
     }
 }

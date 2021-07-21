@@ -11,7 +11,6 @@
         android:layout_margin="0dp"
         android:layout_marginHorizontal="10dp"
         android:background="@drawable/rounded_corner"
-        android:backgroundTint="@color/emerald"
         android:maxHeight="100dp"
         android:text="Topic"
         android:textColor="@color/white_powder"

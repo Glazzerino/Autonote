@@ -1,5 +1,7 @@
 package com.fbu.autonote.models;
 
+import com.google.firebase.database.DataSnapshot;
+
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -8,7 +10,6 @@ import java.util.HashMap;
 import java.util.List;
 
 import es.dmoral.toasty.Toasty;
-
 
 public class Note {
     /**
@@ -22,20 +23,14 @@ public class Note {
      * @param imageURL points to the firebase database file that contains the actual image of the source material
      * @param textContent stores the Optical Character Recognition result from the source image (imageURL)
      * @param noteId unique identifier of the note
+     * @param date date of creation
      */
     private String topic;
     private List<String> keywords;
     private String imageURL;
     private String textContent;
     private String noteId;
-
-    public Note(String topic, List<String> keywords, String imageURL, String textContent, String noteId, long userId) {
-        this.topic = topic;
-        this.keywords = keywords;
-        this.imageURL = imageURL;
-        this.textContent = textContent;
-        this.noteId = noteId;
-    }
+    private String date;
 
     public Note() {
         keywords = new ArrayList<>();
@@ -48,7 +43,23 @@ public class Note {
     public void addKeyword(String word) {
         keywords.add(word);
     }
+
+    public static Note fromDataSnapshot(DataSnapshot snapshot, String date) {
+        Note note = new Note();
+        note.setTopic(snapshot.child("topic").getValue(String.class));
+        note.setNoteId(snapshot.child("noteId").getValue(String.class));
+        note.setTextContent(snapshot.child("textContent").getValue(String.class));
+
+        for (DataSnapshot keyword : snapshot.child("keywords").getChildren()){
+            note.keywords.add(keyword.getValue(String.class));
+        }
+        note.setImageURL(snapshot.child("imageURL").getValue(String.class));
+        note.setDate(date);
+        return note;
+    }
+
     public void setKeywords(List<String> keywords) {
+        //Copies data instead of getting reference
         this.keywords = new ArrayList<>(keywords);
     }
 
@@ -93,5 +104,13 @@ public class Note {
         jsonObject.put("keywords", keywords);
         jsonObject.put("textContent", textContent);
         return jsonObject;
+    }
+
+    public String getDate() {
+        return date;
+    }
+
+    public void setDate(String date) {
+        this.date = date;
     }
 }
