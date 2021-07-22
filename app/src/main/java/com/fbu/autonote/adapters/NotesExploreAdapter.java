@@ -7,6 +7,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageButton;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -67,6 +68,7 @@ public class NotesExploreAdapter extends RecyclerView.Adapter<NotesExploreAdapte
         return notes.size();
     }
 
+
     public class ViewHolder extends RecyclerView.ViewHolder {
         TextView tvDate;
         TextView tvKeywords;
@@ -76,9 +78,13 @@ public class NotesExploreAdapter extends RecyclerView.Adapter<NotesExploreAdapte
         CircularProgressDrawable progressDrawable;
         Favorites favorites;
         String topic;
+        public boolean isFavorite;
+
+
         public ViewHolder(@NonNull @NotNull View itemView) {
             super(itemView);
             tvDate = itemView.findViewById(R.id.tvDate);
+            isFavorite = false;
             tvKeywords = itemView.findViewById(R.id.tvKeywordsCard);
             btnFav = itemView.findViewById(R.id.btnFav);
             ivPreview = itemView.findViewById(R.id.ivNotePreview);
@@ -97,8 +103,8 @@ public class NotesExploreAdapter extends RecyclerView.Adapter<NotesExploreAdapte
         protected void bind(Note note) {
             String keywords = new String();
             //Get 5 keywords at most
-            boolean isFav = favorites.checkIfFavorite(note.getUrl(), topic);
-            setBtnFav(isFav);
+            isFavorite = favorites.checkIfFavorite(note.getUrl(), topic);
+            setBtnFav(isFavorite);
             int counter = 0;
             for (String keyword : note.getKeywords()) {
                 keywords += keyword;
@@ -119,14 +125,15 @@ public class NotesExploreAdapter extends RecyclerView.Adapter<NotesExploreAdapte
             btnFav.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    boolean isFavorite = favorites.checkIfFavorite(note.getUrl(), topic);
                     //if it's not in favorites list add it
                     if (!isFavorite) {
                         favorites.addFav(note.getUrl(), topic);
+                        isFavorite = true;
                         setBtnFav(true);
                     } else {
                         favorites.remove(note.getUrl(), topic);
                         setBtnFav(false);
+                        isFavorite = false;
                     }
                 }
             });
