@@ -6,10 +6,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-
-import es.dmoral.toasty.Toasty;
 
 public class Note {
     /**
@@ -103,6 +100,7 @@ public class Note {
         jsonObject.put("imageUrl", imageURL);
         jsonObject.put("keywords", keywords);
         jsonObject.put("textContent", textContent);
+
         return jsonObject;
     }
 

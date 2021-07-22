@@ -1,15 +1,14 @@
 package com.fbu.autonote.activities;
 
-import androidx.annotation.NonNull;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.widget.LinearLayoutCompat;
-import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
-
 import android.content.Context;
 import android.os.Bundle;
 import android.util.Log;
 import android.widget.TextView;
+
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.fbu.autonote.R;
 import com.fbu.autonote.adapters.NotesExploreAdapter;
@@ -22,8 +21,6 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
 import org.jetbrains.annotations.NotNull;
-import org.json.JSONException;
-import org.json.JSONObject;
 
 import es.dmoral.toasty.Toasty;
 
@@ -68,10 +65,11 @@ public class NotesExploreActivity extends AppCompatActivity {
                 //Each topic has a collection inside of it, so we must iterate over each collection
                 int position = 0; //keep track of the number of additions to avoid excessive function calling
                 for (DataSnapshot collection : snapshot.getChildren()) {
-                    String date = collection.child("date").getValue(String.class);
+                    String date = collection.getKey();
                     for (DataSnapshot noteSnapshot : collection.getChildren()) {
                         //Collections hold notes, so we nest another loop inside
                         Note note = Note.fromDataSnapshot(noteSnapshot, date);
+                        Log.d(TAG, "Path to note: " + noteSnapshot.getRef().toString());
                         notesExploreAdapter.addToNoteContainer(note);
                         notesExploreAdapter.notifyItemInserted(position++);
                     }

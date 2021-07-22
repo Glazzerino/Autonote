@@ -15,6 +15,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.fbu.autonote.R;
 import com.fbu.autonote.activities.NotesExploreActivity;
+import com.fbu.autonote.utilities.Favorites;
 
 import org.jetbrains.annotations.NotNull;
 import java.util.ArrayList;
@@ -26,6 +27,7 @@ import java.util.List;
 public class TopicsAdapter extends RecyclerView.Adapter<TopicsAdapter.ViewHolder> {
     Context context;
     List<String> topics;
+
     public TopicsAdapter(Context context) {
         this.context = context;
         topics = new ArrayList<>();

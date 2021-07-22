@@ -296,7 +296,7 @@ public class MainActivity extends AppCompatActivity {
             //add note as topic/collecitonId/noteId inside database filesystem
             noteReference = databaseReference
                     .child(note.getTopic())
-                    .child(collectionId)
+                    .child(nowDate)
                     .child(note.getNoteId());
 
             DatabaseReference keywords = noteReference.child("keywords");
