@@ -3,6 +3,7 @@ package com.fbu.autonote.activities;
 import android.content.Context;
 import android.os.Bundle;
 import android.util.Log;
+import android.widget.Button;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -13,6 +14,8 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.fbu.autonote.R;
 import com.fbu.autonote.adapters.NotesExploreAdapter;
 import com.fbu.autonote.models.Note;
+import com.fbu.autonote.utilities.Favorites;
+import com.google.android.material.button.MaterialButtonToggleGroup;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -33,11 +36,15 @@ public class NotesExploreActivity extends AppCompatActivity {
     LinearLayoutManager linearLayoutManager;
     String topic;
     Context context;
+    Favorites favoritesManager;
+    MaterialButtonToggleGroup toggleGroup;
+
     public static final String TAG = "NotesExploreActivity";
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         context = this;
+        favoritesManager = new Favorites(context);
         setContentView(R.layout.activity_notes_explore);
         userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
         database = FirebaseDatabase.getInstance().getReference(userId);
@@ -45,14 +52,35 @@ public class NotesExploreActivity extends AppCompatActivity {
         rvNotes = findViewById(R.id.rvNoteCards);
         topic = getIntent().getExtras().getString("topic");
         tvTopicTitle.setText(topic);
+        toggleGroup = findViewById(R.id.toggleGroupNotes);
         //Set up recyclerview
-        notesExploreAdapter = new NotesExploreAdapter(this);
+        notesExploreAdapter = new NotesExploreAdapter(this,
+                favoritesManager,
+                topic);
         linearLayoutManager = new LinearLayoutManager(this,
                 LinearLayoutManager.VERTICAL,
                 false);
         rvNotes.setAdapter(notesExploreAdapter);
         rvNotes.setLayoutManager(linearLayoutManager);
         populateAdapterContainer();
+
+        toggleGroup.addOnButtonCheckedListener(new MaterialButtonToggleGroup.OnButtonCheckedListener() {
+            @Override
+            public void onButtonChecked(MaterialButtonToggleGroup group, int checkedId, boolean isChecked) {
+                switch (checkedId) {
+                    case R.id.btnShowAll:
+                        if (isChecked) {
+
+                        }
+                        break;
+                    case R.id.btnShowFavs:
+                        if (isChecked) {
+
+                        }
+                        break;
+                }
+            }
+        });
     }
 
     //loads notes from firebase onto the adapter's container
@@ -69,7 +97,6 @@ public class NotesExploreActivity extends AppCompatActivity {
                     for (DataSnapshot noteSnapshot : collection.getChildren()) {
                         //Collections hold notes, so we nest another loop inside
                         Note note = Note.fromDataSnapshot(noteSnapshot, date);
-                        Log.d(TAG, "Path to note: " + noteSnapshot.getRef().toString());
                         notesExploreAdapter.addToNoteContainer(note);
                         notesExploreAdapter.notifyItemInserted(position++);
                     }

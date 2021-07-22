@@ -28,6 +28,7 @@ public class Note {
     private String textContent;
     private String noteId;
     private String date;
+    private String Url;
 
     public Note() {
         keywords = new ArrayList<>();
@@ -46,7 +47,7 @@ public class Note {
         note.setTopic(snapshot.child("topic").getValue(String.class));
         note.setNoteId(snapshot.child("noteId").getValue(String.class));
         note.setTextContent(snapshot.child("textContent").getValue(String.class));
-
+        note.setUrl(snapshot.getRef().toString());
         for (DataSnapshot keyword : snapshot.child("keywords").getChildren()){
             note.keywords.add(keyword.getValue(String.class));
         }
@@ -110,5 +111,13 @@ public class Note {
 
     public void setDate(String date) {
         this.date = date;
+    }
+
+    public String getUrl() {
+        return Url;
+    }
+
+    public void setUrl(String url) {
+        Url = url;
     }
 }

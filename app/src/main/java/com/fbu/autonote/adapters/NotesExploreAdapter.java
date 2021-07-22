@@ -1,6 +1,7 @@
 package com.fbu.autonote.adapters;
 
 import android.content.Context;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -14,6 +15,7 @@ import androidx.swiperefreshlayout.widget.CircularProgressDrawable;
 
 import com.bumptech.glide.Glide;
 import com.fbu.autonote.R;
+import com.fbu.autonote.activities.NotesExploreActivity;
 import com.fbu.autonote.models.Note;
 import com.fbu.autonote.utilities.Favorites;
 import com.google.firebase.auth.FirebaseAuth;
@@ -30,15 +32,16 @@ public class NotesExploreAdapter extends RecyclerView.Adapter<NotesExploreAdapte
     FirebaseStorage firebaseStorage;
     String userId;
     Favorites favoritesManager;
-
+    String topic;
     //40MB
     public static final long BYTE_DOWNLOAD_LIMIT = 40000000;
-    public NotesExploreAdapter(Context context) {
+    public NotesExploreAdapter(Context context, Favorites favoritesManager, String topic) {
         this.context = context;
         notes = new ArrayList<>();
         firebaseStorage = FirebaseStorage.getInstance();
         userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
-        favoritesManager = new Favorites(context);
+        this.favoritesManager = favoritesManager;
+        this.topic = topic;
     }
 
     @NonNull
@@ -72,8 +75,7 @@ public class NotesExploreAdapter extends RecyclerView.Adapter<NotesExploreAdapte
         FirebaseStorage firebaseStorage;
         CircularProgressDrawable progressDrawable;
         Favorites favorites;
-        boolean isFaved;
-
+        String topic;
         public ViewHolder(@NonNull @NotNull View itemView) {
             super(itemView);
             tvDate = itemView.findViewById(R.id.tvDate);
@@ -86,7 +88,8 @@ public class NotesExploreAdapter extends RecyclerView.Adapter<NotesExploreAdapte
             progressDrawable.setStrokeWidth(5f);
             progressDrawable.start();
             //Get reference to outer class's Favorites Manager object
-            favorites = NotesExploreAdapter.this.favoritesManager;
+            this.favorites = NotesExploreAdapter.this.favoritesManager;
+            topic = NotesExploreAdapter.this.topic;
         }
 
         //Image loading is done inside the bind method to avoid loading images not being shown
@@ -94,10 +97,8 @@ public class NotesExploreAdapter extends RecyclerView.Adapter<NotesExploreAdapte
         protected void bind(Note note) {
             String keywords = new String();
             //Get 5 keywords at most
-            if (favorites.checkIfFavorite(note.getImageURL())) {
-                setBtnFav(true);
-            }
-
+            boolean isFav = favorites.checkIfFavorite(note.getUrl(), topic);
+            setBtnFav(isFav);
             int counter = 0;
             for (String keyword : note.getKeywords()) {
                 keywords += keyword;
@@ -118,13 +119,13 @@ public class NotesExploreAdapter extends RecyclerView.Adapter<NotesExploreAdapte
             btnFav.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    boolean isFavorite = favorites.checkIfFavorite(note.getImageURL());
+                    boolean isFavorite = favorites.checkIfFavorite(note.getUrl(), topic);
                     //if it's not in favorites list add it
                     if (!isFavorite) {
-                        favorites.addFav(note.getImageURL());
+                        favorites.addFav(note.getUrl(), topic);
                         setBtnFav(true);
                     } else {
-                        favorites.remove(note.getImageURL());
+                        favorites.remove(note.getUrl(), topic);
                         setBtnFav(false);
                     }
                 }

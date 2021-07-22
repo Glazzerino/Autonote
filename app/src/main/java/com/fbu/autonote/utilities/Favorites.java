@@ -11,6 +11,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -19,15 +20,16 @@ public class Favorites {
      * @class manages the CRUD-like favorites list
      */
     File favsFile;
-    Set<String> favoritesSet;
     Context context;
     OutputStreamWriter writer;
+    public static final float LOAD_FACTOR = 0.8f;
+    HashMap<String, Set<String>> mainContainer;
 
-    private static final String FILENAME = "Favorites.txt";
+    private static final String FILENAME = "favorites.txt";
     public static final String TAG = "FavoriteSystem";
 
     public Favorites(Context context) {
-        favoritesSet = new HashSet<>(20, 0.8f);
+        mainContainer = new HashMap<>(20, LOAD_FACTOR);
         this.context = context;
         try {
             loadData();
@@ -36,23 +38,30 @@ public class Favorites {
         }
     }
 
-    private void attemptInsert(String uri) {
-        if (!favoritesSet.add(uri)) {
-            Log.e(TAG, String.format("Error; element already in list: [%s]", uri));
+    private void attemptInsert(String topic, String uri) {
+        if (!mainContainer.containsKey(topic)) {
+            mainContainer.put(topic, new HashSet<>(20, LOAD_FACTOR));
         }
+        mainContainer.get(topic).add(uri);
+        Log.d(TAG, String.format("Item added to %s: %s", topic, uri));
     }
 
-    public void addFav(String newNoteUri) {
-        attemptInsert(newNoteUri);
+    public void addFav(String newNoteUri, String topic) {
+        attemptInsert(topic, newNoteUri);
         save();
     }
 
     private void save() {
         try (FileOutputStream fos = context.openFileOutput(FILENAME, Context.MODE_PRIVATE)) {
-            for (String uri : favoritesSet) {
-                byte[] newline = new String("\n\r").getBytes();
-                fos.write(uri.getBytes());
-                fos.write(newline);
+            //Save each entry inside the
+            for (String topic : mainContainer.keySet()) {
+                Log.d(TAG, topic);
+                for (String uri : mainContainer.get(topic)) {
+                    String writeLine = topic + "_" + uri;
+                    byte[] newline = "\n".getBytes();
+                    fos.write(writeLine.getBytes());
+                    fos.write(newline);
+                }
             }
         } catch (FileNotFoundException e) {
             e.printStackTrace();
@@ -61,17 +70,28 @@ public class Favorites {
         }
     }
 
-    public Set<String> getFavoritesList() {
-        return favoritesSet;
+    public Set<String> getFavoritesList(String topic) throws NullPointerException{
+        return mainContainer.get(topic);
     }
 
-    public void remove(String uri) {
-        favoritesSet.remove(uri);
-        save();
+    public boolean remove(String uri, String topic) {
+        try {
+            mainContainer.get(topic).remove(uri);
+            save();
+            return true;
+        } catch (NullPointerException e) {
+            Log.e(TAG, e.toString());
+            return false;
+        }
     }
 
-    public boolean checkIfFavorite(String uri) {
-        return favoritesSet.contains(uri);
+    public boolean checkIfFavorite(String uri, String topic) {
+        if (mainContainer.containsKey(topic)) {
+            boolean result = mainContainer.get(topic).contains(uri);
+            Log.d(TAG, "CHECKED IF FAVORITE: " + result);
+            return result;
+        }
+        return false;
     }
 
     private void loadData() throws IOException {
@@ -82,14 +102,33 @@ public class Favorites {
             String fileLine = reader.readLine();
 
             while(fileLine != null) {
-                if (!favoritesSet.contains(fileLine)) {
-                    attemptInsert(fileLine);
-                    Log.d(TAG, "Fileline: " + fileLine);
-                } else {
-                    Log.e(TAG, "Error: item already in set");
+                //Note topic goes before the note uri, behind the "_" character
+                Log.d(TAG, "file line: " + fileLine);
+                int separatorIndex = fileLine.indexOf("_");
+                String topic = null;
+                String uri = null;
+                try {
+                     topic = fileLine.substring(0, separatorIndex);
+                     uri = fileLine.substring(separatorIndex + 1);
+                    //If hashmap has not initialized the topic set then do so
+                    attemptInsert(topic, uri);
+                } catch (StringIndexOutOfBoundsException e) {
+                    Log.e(TAG, e.toString());
                 }
                 fileLine = reader.readLine();
             }
+            displayContainer();
         }
     }
+
+    private void displayContainer() {
+        for (String topic : mainContainer.keySet()) {
+            Log.d(TAG, "__"+topic+"__");
+            for (String uri : mainContainer.get(topic)) {
+                Log.d(TAG, uri);
+            }
+        }
+    }
+
+
 }
