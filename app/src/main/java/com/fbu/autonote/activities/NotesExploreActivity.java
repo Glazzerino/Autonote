@@ -44,10 +44,9 @@ public class NotesExploreActivity extends AppCompatActivity {
     Context context;
     Favorites favoritesManager;
     MaterialButtonToggleGroup toggleGroup;
-    //Stores numeric indexes that point to notes that are marked as favorite, to avoid data duplication
     Set<Integer> notFavoritePointers;
-
     public static final String TAG = "NotesExploreActivity";
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -62,7 +61,7 @@ public class NotesExploreActivity extends AppCompatActivity {
         topic = getIntent().getExtras().getString("topic");
         tvTopicTitle.setText(topic);
         toggleGroup = findViewById(R.id.toggleGroupNotes);
-        //Set up recyclerview
+
         notesExploreAdapter = new NotesExploreAdapter(this,
                 favoritesManager,
                 topic);
@@ -104,7 +103,6 @@ public class NotesExploreActivity extends AppCompatActivity {
 
     //loads notes from firebase onto the adapter's container
     private void populateAdapterContainer() {
-        //Switch to the current topic directory and get notes
         database = database.child(topic);
         ValueEventListener valueEventListener = new ValueEventListener() {
             @Override

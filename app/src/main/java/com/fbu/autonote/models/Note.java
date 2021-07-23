@@ -1,5 +1,8 @@
 package com.fbu.autonote.models;
 
+import android.os.Parcel;
+import android.os.Parcelable;
+
 import com.google.firebase.database.DataSnapshot;
 
 import org.json.JSONException;
@@ -8,7 +11,7 @@ import org.json.JSONObject;
 import java.util.ArrayList;
 import java.util.List;
 
-public class Note {
+public class Note implements Parcelable {
     /**
      * Represents the data model that contains all note-related data.
      * These values match those of their firebase counterparts.
@@ -28,12 +31,55 @@ public class Note {
     private String textContent;
     private String noteId;
     private String date;
-    private String Url;
+    private String url;
 
     public Note() {
         keywords = new ArrayList<>();
     }
 
+    public static final Creator<Note> CREATOR = new Creator<Note>() {
+        @Override
+        public Note createFromParcel(Parcel in) {
+            return new Note(in);
+        }
+
+        @Override
+        public Note[] newArray(int size) {
+            return new Note[size];
+        }
+    };
+
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+        dest.writeString(topic);
+        dest.writeString(textContent);
+        dest.writeString(imageURL);
+        dest.writeString(noteId);
+        dest.writeString(date);
+        dest.writeString(url);
+        dest.writeStringList(keywords);
+    }
+
+    protected Note(Parcel parcel) {
+        this.topic = parcel.readString();
+        this.textContent = parcel.readString();
+        this.imageURL = parcel.readString();
+        this.noteId = parcel.readString();
+        this.date = parcel.readString();
+        this.url = parcel.readString();
+        keywords = new ArrayList<>(10);
+        parcel.readStringList(keywords);
+    }
+
+    public Note(String topic, String textContent, String imageURL, String noteId, String date, String url, List<String> keywords) {
+        this.topic = topic;
+        this.textContent = textContent;
+        this.imageURL = imageURL;
+        this.noteId = noteId;
+        this.date = date;
+        this.url = url;
+        this.keywords = new ArrayList<>(keywords);
+    }
     public void setTopic(String topic) {
         this.topic = topic;
     }
@@ -114,10 +160,17 @@ public class Note {
     }
 
     public String getUrl() {
-        return Url;
+        return url;
     }
 
     public void setUrl(String url) {
-        Url = url;
+        this.url = url;
     }
+
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+
 }

@@ -13,7 +13,8 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.Autonote">
-        <activity android:name=".activities.NotesExploreActivity"></activity>
+        <activity android:name=".activities.FullScreenCardActivity"></activity>
+        <activity android:name=".activities.NotesExploreActivity" />
         <activity android:name=".activities.SignUpActivity" />
         <activity android:name=".activities.LoginActivity">
             <intent-filter>

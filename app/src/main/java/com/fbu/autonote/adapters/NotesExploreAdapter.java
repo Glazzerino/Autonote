@@ -1,6 +1,7 @@
 package com.fbu.autonote.adapters;
 
 import android.content.Context;
+import android.content.Intent;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -15,8 +16,10 @@ import androidx.swiperefreshlayout.widget.CircularProgressDrawable;
 
 import com.bumptech.glide.Glide;
 import com.fbu.autonote.R;
+import com.fbu.autonote.activities.FullScreenCardActivity;
 import com.fbu.autonote.models.Note;
 import com.fbu.autonote.utilities.Favorites;
+import com.fbu.autonote.utilities.GetListOfKeywordsString;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.storage.FirebaseStorage;
 
@@ -116,15 +119,8 @@ public class NotesExploreAdapter extends RecyclerView.Adapter<NotesExploreAdapte
             setBtnFav(isFavorite);
             //Get 5 keywords at most
             int counter = 0;
-            for (String keyword : note.getKeywords()) {
-                keywords += keyword;
-                if (counter++ > 5) {
-                    keywords += ".";
-                    break;
-                } else {
-                    keywords += ", ";
-                }
-            }
+            List<String> keywordsRaw = note.getKeywords();
+            keywords = GetListOfKeywordsString.getString(keywordsRaw, keywordsRaw.size());
             tvDate.setText(note.getDate());
             tvKeywords.setText(keywords);
             Glide.with(itemView)
@@ -145,6 +141,14 @@ public class NotesExploreAdapter extends RecyclerView.Adapter<NotesExploreAdapte
                         setBtnFav(false);
                         isFavorite = false;
                     }
+                }
+            });
+            this.itemView.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    Intent intent = new Intent(context, FullScreenCardActivity.class);
+                    intent.putExtra("note", note);
+                    context.startActivity(intent);
                 }
             });
         }
