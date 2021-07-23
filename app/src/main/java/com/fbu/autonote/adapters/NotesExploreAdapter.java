@@ -7,7 +7,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageButton;
 import android.widget.ImageView;
-import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -16,7 +15,6 @@ import androidx.swiperefreshlayout.widget.CircularProgressDrawable;
 
 import com.bumptech.glide.Glide;
 import com.fbu.autonote.R;
-import com.fbu.autonote.activities.NotesExploreActivity;
 import com.fbu.autonote.models.Note;
 import com.fbu.autonote.utilities.Favorites;
 import com.google.firebase.auth.FirebaseAuth;
@@ -27,6 +25,9 @@ import org.jetbrains.annotations.NotNull;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * @about Manages the note cards inside the Note Exploration Activity
+ */
 public class NotesExploreAdapter extends RecyclerView.Adapter<NotesExploreAdapter.ViewHolder> {
     List<Note> notes;
     Context context;
@@ -34,6 +35,8 @@ public class NotesExploreAdapter extends RecyclerView.Adapter<NotesExploreAdapte
     String userId;
     Favorites favoritesManager;
     String topic;
+    boolean showFavoritesOnly;
+
     //40MB
     public static final long BYTE_DOWNLOAD_LIMIT = 40000000;
     public NotesExploreAdapter(Context context, Favorites favoritesManager, String topic) {
@@ -56,6 +59,11 @@ public class NotesExploreAdapter extends RecyclerView.Adapter<NotesExploreAdapte
     @Override
     public void onBindViewHolder(@NonNull @NotNull NotesExploreAdapter.ViewHolder holder, int position) {
         Note note = notes.get(position);
+        if (!favoritesManager.checkIfFavorite(note.getUrl(), topic) && showFavoritesOnly) {
+            holder.disableVisibility();
+        } else {
+            holder.enableVisibility();
+        }
         holder.bind(note);
     }
 
@@ -68,6 +76,9 @@ public class NotesExploreAdapter extends RecyclerView.Adapter<NotesExploreAdapte
         return notes.size();
     }
 
+    public void setShowFavoritesOnly(boolean set) {
+        showFavoritesOnly = set;
+    }
 
     public class ViewHolder extends RecyclerView.ViewHolder {
         TextView tvDate;
@@ -79,7 +90,6 @@ public class NotesExploreAdapter extends RecyclerView.Adapter<NotesExploreAdapte
         Favorites favorites;
         String topic;
         public boolean isFavorite;
-
 
         public ViewHolder(@NonNull @NotNull View itemView) {
             super(itemView);
@@ -93,18 +103,18 @@ public class NotesExploreAdapter extends RecyclerView.Adapter<NotesExploreAdapte
             progressDrawable.setCenterRadius(40f);
             progressDrawable.setStrokeWidth(5f);
             progressDrawable.start();
-            //Get reference to outer class's Favorites Manager object
             this.favorites = NotesExploreAdapter.this.favoritesManager;
             topic = NotesExploreAdapter.this.topic;
         }
 
-        //Image loading is done inside the bind method to avoid loading images not being shown
-        //in the recyclerview
         protected void bind(Note note) {
             String keywords = new String();
-            //Get 5 keywords at most
             isFavorite = favorites.checkIfFavorite(note.getUrl(), topic);
+            if (showFavoritesOnly && !isFavorite) {
+                disableVisibility();
+            }
             setBtnFav(isFavorite);
+            //Get 5 keywords at most
             int counter = 0;
             for (String keyword : note.getKeywords()) {
                 keywords += keyword;
@@ -121,7 +131,7 @@ public class NotesExploreAdapter extends RecyclerView.Adapter<NotesExploreAdapte
                     .load(note.getImageURL())
                     .placeholder(progressDrawable)
                     .into(ivPreview);
-
+            Log.d("ViewHolder", String.format("Note id: %s. isFaved: %s", note.getNoteId(), isFavorite));
             btnFav.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
@@ -137,6 +147,22 @@ public class NotesExploreAdapter extends RecyclerView.Adapter<NotesExploreAdapte
                     }
                 }
             });
+        }
+
+        public void disableVisibility() {
+            this.itemView.setVisibility(View.GONE);
+            ViewGroup.LayoutParams params = this.itemView.getLayoutParams();
+            params.height = 0;
+            params.width = 0;
+            this.itemView.setLayoutParams(params);
+        }
+
+        public void enableVisibility() {
+            this.itemView.setVisibility(View.VISIBLE);
+            ViewGroup.LayoutParams params = this.itemView.getLayoutParams();
+            params.height = ViewGroup.LayoutParams.WRAP_CONTENT;
+            params.width = ViewGroup.LayoutParams.MATCH_PARENT;
+            this.itemView.setLayoutParams(params);
         }
 
         //if true then replace drawable with filled star

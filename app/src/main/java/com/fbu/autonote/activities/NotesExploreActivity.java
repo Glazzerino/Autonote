@@ -5,7 +5,6 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -28,8 +27,9 @@ import com.google.firebase.database.ValueEventListener;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
-import java.util.LinkedList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import es.dmoral.toasty.Toasty;
 
@@ -45,7 +45,7 @@ public class NotesExploreActivity extends AppCompatActivity {
     Favorites favoritesManager;
     MaterialButtonToggleGroup toggleGroup;
     //Stores numeric indexes that point to notes that are marked as favorite, to avoid data duplication
-    List<Integer> notFavoritePointers;
+    Set<Integer> notFavoritePointers;
 
     public static final String TAG = "NotesExploreActivity";
     @Override
@@ -53,7 +53,7 @@ public class NotesExploreActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         context = this;
         favoritesManager = new Favorites(context);
-        notFavoritePointers = new ArrayList<>();
+        notFavoritePointers = new HashSet<>();
         setContentView(R.layout.activity_notes_explore);
         userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
         database = FirebaseDatabase.getInstance().getReference(userId);
@@ -93,29 +93,13 @@ public class NotesExploreActivity extends AppCompatActivity {
     }
 
     private void showAll() {
-        for (Integer adapterPosition : notFavoritePointers) {
-            NotesExploreAdapter.ViewHolder viewHolder =
-                    (NotesExploreAdapter.ViewHolder) rvNotes.findViewHolderForAdapterPosition(adapterPosition);
-            ViewGroup.LayoutParams params = viewHolder.itemView.getLayoutParams();
-            params.height = ViewGroup.LayoutParams.WRAP_CONTENT;
-            params.width = ViewGroup.LayoutParams.MATCH_PARENT;
-            viewHolder.itemView.setLayoutParams(params);
-            viewHolder.itemView.setVisibility(View.VISIBLE);
-        }
+        notesExploreAdapter.setShowFavoritesOnly(false);
+        notesExploreAdapter.notifyDataSetChanged();
     }
 
     private void showFavoritesOnly() {
-        for (int i=0; i<rvNotes.getChildCount(); i++) {
-            NotesExploreAdapter.ViewHolder viewHolder = (NotesExploreAdapter.ViewHolder) rvNotes.findViewHolderForAdapterPosition(i);
-            if (!viewHolder.isFavorite) {
-                viewHolder.itemView.setVisibility(View.GONE);
-                ViewGroup.LayoutParams params = viewHolder.itemView.getLayoutParams();
-                params.height = 0;
-                params.width = 0;
-                viewHolder.itemView.setLayoutParams(params);
-                notFavoritePointers.add(i);
-            }
-        }
+        notesExploreAdapter.setShowFavoritesOnly(true);
+        notesExploreAdapter.notifyDataSetChanged();
     }
 
     //loads notes from firebase onto the adapter's container
@@ -133,9 +117,9 @@ public class NotesExploreActivity extends AppCompatActivity {
                         //Collections hold notes, so we nest another loop inside
                         Note note = Note.fromDataSnapshot(noteSnapshot, date);
                         notesExploreAdapter.addToNoteContainer(note);
-                        notesExploreAdapter.notifyItemInserted(position++);
                     }
                 }
+                notesExploreAdapter.notifyDataSetChanged();
             }
 
             @Override

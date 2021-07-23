@@ -27,7 +27,7 @@ import com.google.firebase.database.ValueEventListener;
 import org.jetbrains.annotations.NotNull;
 
 //This fragment acts as the greeting page of the app.
-public class HomeFragment extends Fragment {
+public class TopicSelectionFragment extends Fragment {
     private Context context;
     RecyclerView rvTopics;
     TextView tvBanner;
@@ -36,12 +36,12 @@ public class HomeFragment extends Fragment {
     GridLayoutManager gridLayoutManager;
 
     public static final String TAG = "HomeFragment";
-    public HomeFragment() {
+    public TopicSelectionFragment() {
         // Required empty public constructor
     }
 
-    public static HomeFragment newInstance(Context context) {
-        HomeFragment fragment = new HomeFragment();
+    public static TopicSelectionFragment newInstance(Context context) {
+        TopicSelectionFragment fragment = new TopicSelectionFragment();
         Bundle args = new Bundle();
         fragment.setArguments(args);
         fragment.context = context;

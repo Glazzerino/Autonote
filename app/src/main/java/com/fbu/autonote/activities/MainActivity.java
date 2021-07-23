@@ -19,7 +19,7 @@ import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 
 import com.fbu.autonote.R;
-import com.fbu.autonote.fragments.HomeFragment;
+import com.fbu.autonote.fragments.TopicSelectionFragment;
 import com.fbu.autonote.fragments.ScanResultsFragment;
 import com.fbu.autonote.models.Note;
 import com.fbu.autonote.utilities.uClassifyRequestMode;
@@ -121,7 +121,7 @@ public class MainActivity extends AppCompatActivity {
             public boolean onNavigationItemSelected(@NonNull @NotNull MenuItem item) {
                 switch (item.getItemId()) {
                     case R.id.itemNotes:
-                        fragment = HomeFragment.newInstance(context);
+                        fragment = TopicSelectionFragment.newInstance(context);
                         break;
                     case R.id.itemScan:
                         /**
@@ -135,6 +135,8 @@ public class MainActivity extends AppCompatActivity {
                 return true;
             }
         });
+        fragment = TopicSelectionFragment.newInstance(this);
+        startFragment();
     }
 
     @Override
@@ -150,8 +152,6 @@ public class MainActivity extends AppCompatActivity {
             List<Note> newNotes = new ArrayList<>();
             Task<List<Task<Uri>>> uploadTasks = getUploadImageTasks(newNoteCollectionId, newNotes);
             Task<List<Task<JsonElement>>> annotationTasks = getAnnotationTasks();
-            List<String> topics = new ArrayList<>();
-            List<List<String>> keywords = new ArrayList<>();
 
             //Main chaining of tasks
             uploadTasks.continueWithTask(new Continuation<List<Task<Uri>>, Task<List<Task<JsonElement>>>>() {
