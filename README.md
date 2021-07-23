@@ -7,7 +7,7 @@ Autonote - FBU project
 2. [Schema](#Schema)
 
 ## Overview
-Autonote is a note-taking, note-scanning application with students in mind.
+Autonote is note-scanning application with students in mind.
 
 ### Description
 The app makes use of text recognition, keyword detection and chronological order to compile and automatically organize notebook, both scanned and digital, for easy visualization. It also enables the user to  share their notes with more people and export it to a desktop-friendly format.
