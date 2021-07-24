@@ -26,7 +26,7 @@ public class FullCardNoteFragment extends Fragment {
 
     Context context;
     TouchImageView touchImageView;
-
+    public static final String TAG = "FullCardNoteFragment";
     public FullCardNoteFragment() { }
 
     public static FullCardNoteFragment newInstance(String iamgeUrl) {
@@ -67,7 +67,7 @@ public class FullCardNoteFragment extends Fragment {
 
                     @Override
                     public void onLoadCleared(@Nullable @org.jetbrains.annotations.Nullable Drawable placeholder) {
-
+                        Log.d(TAG, "Load cleared");
                     }
                 });
     }

@@ -2,24 +2,27 @@ package com.fbu.autonote.fragments;
 
 import android.os.Bundle;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.TextView;
 
 import com.fbu.autonote.R;
 
+import org.jetbrains.annotations.NotNull;
+
 public class TextNoteFragment extends Fragment {
-
-    private String mParam1;
-    private String mParam2;
-
+    TextView tvNoteText;
     public TextNoteFragment() { }
 
-    public static TextNoteFragment newInstance(String param1, String param2) {
+    public static TextNoteFragment newInstance(String textContent) {
         TextNoteFragment fragment = new TextNoteFragment();
         Bundle args = new Bundle();
+        args.putString("textContent", textContent);
         fragment.setArguments(args);
         return fragment;
     }
@@ -27,9 +30,6 @@ public class TextNoteFragment extends Fragment {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        if (getArguments() != null) {
-
-        }
     }
 
     @Override
@@ -37,5 +37,13 @@ public class TextNoteFragment extends Fragment {
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
         return inflater.inflate(R.layout.fragment_text_note, container, false);
+    }
+
+    @Override
+    public void onViewCreated(@NonNull @NotNull View view, @Nullable @org.jetbrains.annotations.Nullable Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
+        tvNoteText = view.findViewById(R.id.tvNoteText);
+        String textContent = getArguments().getString("textContent");
+        tvNoteText.setText(textContent);
     }
 }

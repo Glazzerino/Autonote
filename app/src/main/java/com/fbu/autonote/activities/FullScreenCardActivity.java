@@ -10,6 +10,7 @@ import android.widget.ImageButton;
 
 import com.fbu.autonote.R;
 import com.fbu.autonote.fragments.FullCardNoteFragment;
+import com.fbu.autonote.fragments.TextNoteFragment;
 import com.fbu.autonote.models.Note;
 import com.google.android.material.button.MaterialButtonToggleGroup;
 import com.google.firebase.auth.FirebaseAuth;
@@ -38,6 +39,9 @@ public class FullScreenCardActivity extends AppCompatActivity {
             Log.e(TAG, "Error: Note not found within intent");
         }
 
+        fragment = FullCardNoteFragment.newInstance(note.getImageURL());
+        startFragment();
+
         toggleGroup.addOnButtonCheckedListener(new MaterialButtonToggleGroup.OnButtonCheckedListener() {
             @Override
             public void onButtonChecked(MaterialButtonToggleGroup group, int checkedId, boolean isChecked) {
@@ -45,13 +49,20 @@ public class FullScreenCardActivity extends AppCompatActivity {
                     case R.id.btnTogglePicture:
                         fragment = FullCardNoteFragment.newInstance(note.getImageURL());
                         break;
+                    case R.id.btnToggleText:
+                        fragment = TextNoteFragment.newInstance(note.getTextContent());
+                        break;
                 }
-                if (fragment != null) {
-                    fragmentManager.beginTransaction()
-                            .replace(R.id.flCardFragmentContainer, fragment)
-                            .commit();
-                }
+                startFragment();
             }
         });
+    }
+
+    private void startFragment() {
+        if (fragment != null) {
+            fragmentManager.beginTransaction()
+                    .replace(R.id.flCardFragmentContainer, fragment)
+                    .commit();
+        }
     }
 }
