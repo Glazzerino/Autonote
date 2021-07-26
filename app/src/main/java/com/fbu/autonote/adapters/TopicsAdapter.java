@@ -51,6 +51,10 @@ public class TopicsAdapter extends RecyclerView.Adapter<TopicsAdapter.ViewHolder
         holder.bind(topicStr);
     }
 
+    public void clearContainer() {
+        topics.clear();
+    }
+
     @Override
     public int getItemCount() {
         return topics.size();

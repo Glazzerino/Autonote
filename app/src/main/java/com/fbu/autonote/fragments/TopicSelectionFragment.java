@@ -34,6 +34,7 @@ public class TopicSelectionFragment extends Fragment {
     DatabaseReference databaseReference;
     TopicsAdapter topicsAdapter;
     GridLayoutManager gridLayoutManager;
+    String userId;
 
     public static final String TAG = "HomeFragment";
     public TopicSelectionFragment() {
@@ -56,6 +57,7 @@ public class TopicSelectionFragment extends Fragment {
 
     //Gets topics inside user directory
     private void populateAdapterContainer(String userId) {
+        topicsAdapter.clearContainer();
         databaseReference = FirebaseDatabase.getInstance().getReference(userId);
         //Get list of topics inside user directory
         ValueEventListener eventListener = new ValueEventListener() {
@@ -82,9 +84,15 @@ public class TopicSelectionFragment extends Fragment {
     }
 
     @Override
+    public void onResume() {
+        super.onResume();
+        populateAdapterContainer(userId);
+    }
+
+    @Override
     public void onViewCreated(@NonNull @NotNull View view, @Nullable @org.jetbrains.annotations.Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
+        userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
         topicsAdapter = new TopicsAdapter(context);
         gridLayoutManager = new GridLayoutManager(context, 2);
         populateAdapterContainer(userId);

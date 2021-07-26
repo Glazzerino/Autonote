@@ -70,6 +70,9 @@ public class NotesExploreAdapter extends RecyclerView.Adapter<NotesExploreAdapte
         holder.bind(note);
     }
 
+    public void clearContainer() {
+        notes.clear();
+    }
     public void addToNoteContainer(Note note) {
         notes.add(note);
     }

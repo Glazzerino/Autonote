@@ -13,6 +13,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageButton;
 
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.request.target.CustomTarget;
@@ -70,5 +71,6 @@ public class FullCardNoteFragment extends Fragment {
                         Log.d(TAG, "Load cleared");
                     }
                 });
+
     }
 }

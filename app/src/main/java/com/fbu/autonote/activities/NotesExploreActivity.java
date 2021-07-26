@@ -107,6 +107,7 @@ public class NotesExploreActivity extends AppCompatActivity {
         ValueEventListener valueEventListener = new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull @NotNull DataSnapshot snapshot) {
+                notesExploreAdapter.clearContainer();
                 //Each topic has a collection inside of it, so we must iterate over each collection
                 int position = 0; //keep track of the number of additions to avoid excessive function calling
                 for (DataSnapshot collection : snapshot.getChildren()) {
