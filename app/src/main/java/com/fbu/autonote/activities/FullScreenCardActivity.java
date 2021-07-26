@@ -18,6 +18,7 @@ import com.fbu.autonote.fragments.ConfirmDeleteFragment;
 import com.fbu.autonote.fragments.FullCardNoteFragment;
 import com.fbu.autonote.fragments.TextNoteFragment;
 import com.fbu.autonote.models.Note;
+import com.fbu.autonote.utilities.Favorites;
 import com.google.android.material.button.MaterialButtonToggleGroup;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DatabaseError;
@@ -37,6 +38,8 @@ public class FullScreenCardActivity extends AppCompatActivity implements Confirm
     DatabaseReference databaseReference;
     Note note;
     Context context;
+    Favorites favoritesManager;
+
     public final static String TAG = "FullScreenCardActivity";
 
     @Override
@@ -78,6 +81,13 @@ public class FullScreenCardActivity extends AppCompatActivity implements Confirm
             public void onClick(View v) {
                 ConfirmDeleteFragment confirmDeleteFragment = new ConfirmDeleteFragment();
                 confirmDeleteFragment.show(fragmentManager, "confirmDelete");
+            }
+        });
+
+        btnFavNote.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
             }
         });
     }
