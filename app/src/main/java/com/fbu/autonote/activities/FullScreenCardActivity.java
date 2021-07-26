@@ -49,7 +49,7 @@ public class FullScreenCardActivity extends AppCompatActivity implements Confirm
         String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
         databaseReference = FirebaseDatabase.getInstance().getReference().child(userId);
         btnDeleteNote = findViewById(R.id.btnDeleteNote);
-        btnFavNote = findViewById(R.id.btnFav);
+        btnFavNote = findViewById(R.id.btnFavNote);
         toggleGroup = findViewById(R.id.toggleGroupFullCard);
         fragmentManager = getSupportFragmentManager();
         context = this;

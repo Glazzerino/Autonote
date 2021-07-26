@@ -57,7 +57,6 @@ public class TopicSelectionFragment extends Fragment {
 
     //Gets topics inside user directory
     private void populateAdapterContainer(String userId) {
-        topicsAdapter.clearContainer();
         databaseReference = FirebaseDatabase.getInstance().getReference(userId);
         //Get list of topics inside user directory
         ValueEventListener eventListener = new ValueEventListener() {
@@ -86,6 +85,8 @@ public class TopicSelectionFragment extends Fragment {
     @Override
     public void onResume() {
         super.onResume();
+        topicsAdapter.clearContainer();
+        topicsAdapter.notifyDataSetChanged();
         populateAdapterContainer(userId);
     }
 
@@ -95,7 +96,6 @@ public class TopicSelectionFragment extends Fragment {
         userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
         topicsAdapter = new TopicsAdapter(context);
         gridLayoutManager = new GridLayoutManager(context, 2);
-        populateAdapterContainer(userId);
         rvTopics = view.findViewById(R.id.rvTopics);
         rvTopics.setAdapter(topicsAdapter);
         rvTopics.setLayoutManager(gridLayoutManager);
