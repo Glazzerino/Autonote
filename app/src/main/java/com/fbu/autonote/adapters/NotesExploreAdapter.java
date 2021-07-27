@@ -20,6 +20,7 @@ import com.fbu.autonote.activities.FullScreenCardActivity;
 import com.fbu.autonote.models.Note;
 import com.fbu.autonote.utilities.Favorites;
 import com.fbu.autonote.utilities.GetListOfKeywordsString;
+import com.fbu.autonote.utilities.RecentNotesManager;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.storage.FirebaseStorage;
 
@@ -149,6 +150,7 @@ public class NotesExploreAdapter extends RecyclerView.Adapter<NotesExploreAdapte
             this.itemView.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
+                    RecentNotesManager.getInstance().registerUse(note);
                     Intent intent = new Intent(context, FullScreenCardActivity.class);
                     intent.putExtra("note", note);
                     context.startActivity(intent);

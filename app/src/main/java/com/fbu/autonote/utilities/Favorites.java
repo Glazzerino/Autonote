@@ -21,7 +21,6 @@ public class Favorites {
      */
     File favsFile;
     Context context;
-    OutputStreamWriter writer;
     public static final float LOAD_FACTOR = 0.8f;
     HashMap<String, Set<String>> mainContainer;
 

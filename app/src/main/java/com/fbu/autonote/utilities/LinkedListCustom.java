@@ -41,11 +41,19 @@ public class LinkedListCustom<T> {
     }
 
     public void moveToBack(CustomNode<T> node) throws NullPointerException{
+        if (node.prev != null && node.next != null) {
             node.prev.next = node.next;
             node.next.prev = node.prev;
             back.next = node;
             node.prev = back;
-            back = node;
+            node.next = null;
+            this.back = node;
+        }
+        else if (node.next != null) {
+            node.next.next = node;
+            node.prev = node.next;
+            node.next = null;
+        }
     }
 
     public CustomNode<T> getBack() {

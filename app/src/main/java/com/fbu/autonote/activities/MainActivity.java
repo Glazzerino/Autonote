@@ -19,9 +19,11 @@ import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 
 import com.fbu.autonote.R;
+import com.fbu.autonote.fragments.ProfileFragment;
 import com.fbu.autonote.fragments.TopicSelectionFragment;
 import com.fbu.autonote.fragments.ScanResultsFragment;
 import com.fbu.autonote.models.Note;
+import com.fbu.autonote.utilities.RecentNotesManager;
 import com.fbu.autonote.utilities.uClassifyRequestMode;
 import com.geniusscansdk.core.GeniusScanSDK;
 import com.geniusscansdk.core.LicenseException;
@@ -104,6 +106,7 @@ public class MainActivity extends AppCompatActivity {
         imageStorage = FirebaseStorage.getInstance().getReference(userId);
         firebaseFunctions = FirebaseFunctions.getInstance();
         client = new OkHttpClient();
+        RecentNotesManager.getInstance().initialize(this);
 
         //Init GeniusSDK
         try {
@@ -129,6 +132,9 @@ public class MainActivity extends AppCompatActivity {
                          * gets done from withing initScanner()
                          **/
                         initScanner();
+                        break;
+                    case R.id.itemProfile:
+                        fragment = ProfileFragment.newInstance();
                         break;
                 }
                 startFragment();
