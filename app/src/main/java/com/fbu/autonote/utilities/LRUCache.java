@@ -13,7 +13,7 @@ public class LRUCache<T> implements Iterator<T> {
      * @field pointerTable stores a pointer to the item inside the queue for fast verification of existence
      * @field next used as part of the implementation of the Iterator<T> interface
      */
-    private LinkedListCustom<T> container;
+    protected LinkedListCustom<T> container;
     private HashMap<T, CustomNode<T>> pointerTable;
     CustomNode<T> current; //For iteration
     int limit;

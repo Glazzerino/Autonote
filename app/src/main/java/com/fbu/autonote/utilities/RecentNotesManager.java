@@ -12,14 +12,13 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.io.OutputStreamWriter;
 
 public class RecentNotesManager {
     File file;
     Context context;
     public static final String TAG  = "RecentNotesManager";
     public static final String FILENAME = "recentNotes.txt";
-    public static final int CAPACITY = 20;
+    public static final int CAPACITY = 10;
     LRUCache<String> cache;
     private static final RecentNotesManager instance = new RecentNotesManager();
     /**
@@ -63,6 +62,10 @@ public class RecentNotesManager {
         save();
     }
 
+    public LRUCache<String> getContainer() {
+        return cache;
+    }
+
     public void save() {
             try (FileOutputStream fos = context.openFileOutput(FILENAME, Context.MODE_PRIVATE)) {
                 for (LRUCache<String> it = cache; it.hasNext(); ) {
@@ -77,5 +80,5 @@ public class RecentNotesManager {
                 e.printStackTrace();
             }
         }
-    }
+}
 

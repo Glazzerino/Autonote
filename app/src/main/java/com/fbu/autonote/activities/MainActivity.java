@@ -299,6 +299,7 @@ public class MainActivity extends AppCompatActivity {
         //Iterate over each Note object to upload its data to the realtime database
         for (int i=0; i<newNotes.size(); i++) {
             Note note = newNotes.get(i);
+            note.setDate(nowDate);
             //add note as topic/collecitonId/noteId inside database filesystem
             noteReference = databaseReference
                     .child(note.getTopic())
@@ -315,11 +316,6 @@ public class MainActivity extends AppCompatActivity {
         return uploadTasks;
     }
 
-    /**
-     * @return a list of Note objects for later firebase realtime database uploading
-     * @see <a href="https://firebase.google.com/docs/ml/android/recognize-text?authuser=0">
-     *     Firebase Vision API docs</a>
-     */
     private Task<List<Task<JsonElement>>> getAnnotationTasks() {
 
         List<Task<JsonElement>> annotationTasksList = new ArrayList<>();

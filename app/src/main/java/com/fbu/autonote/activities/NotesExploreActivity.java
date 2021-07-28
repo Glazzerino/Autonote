@@ -114,7 +114,8 @@ public class NotesExploreActivity extends AppCompatActivity {
                     String date = collection.getKey();
                     for (DataSnapshot noteSnapshot : collection.getChildren()) {
                         //Collections hold notes, so we nest another loop inside
-                        Note note = Note.fromDataSnapshot(noteSnapshot, date);
+                        Note note = Note.fromDataSnapshot(noteSnapshot);
+                        note.setUrl(noteSnapshot.getRef().getPath().toString());
                         notesExploreAdapter.addToNoteContainer(note);
                     }
                 }

@@ -51,6 +51,18 @@ public class NotesExploreAdapter extends RecyclerView.Adapter<NotesExploreAdapte
         this.favoritesManager = favoritesManager;
         this.topic = topic;
     }
+    public NotesExploreAdapter(Context context, Favorites favoritesManager) {
+        this.context = context;
+        notes = new ArrayList<>();
+        firebaseStorage = FirebaseStorage.getInstance();
+        userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
+        this.favoritesManager = favoritesManager;
+    }
+
+    public void overrideContainer(List<Note> newContainer) {
+        this.notes = newContainer;
+        this.notifyDataSetChanged();
+    }
 
     @NonNull
     @NotNull

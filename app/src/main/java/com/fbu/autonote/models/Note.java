@@ -88,17 +88,17 @@ public class Note implements Parcelable {
         keywords.add(word);
     }
 
-    public static Note fromDataSnapshot(DataSnapshot snapshot, String date) {
+    public static Note fromDataSnapshot(DataSnapshot snapshot) {
         Note note = new Note();
         note.setTopic(snapshot.child("topic").getValue(String.class));
         note.setNoteId(snapshot.child("noteId").getValue(String.class));
         note.setTextContent(snapshot.child("textContent").getValue(String.class));
-        note.setUrl(snapshot.getRef().toString());
+        note.setUrl(snapshot.getRef().getPath().toString());
         for (DataSnapshot keyword : snapshot.child("keywords").getChildren()){
             note.keywords.add(keyword.getValue(String.class));
         }
         note.setImageURL(snapshot.child("imageURL").getValue(String.class));
-        note.setDate(date);
+        note.setDate(snapshot.child("date").getValue(String.class));
         return note;
     }
 

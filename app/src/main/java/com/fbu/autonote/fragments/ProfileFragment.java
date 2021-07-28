@@ -1,25 +1,45 @@
 package com.fbu.autonote.fragments;
 
+import android.content.Context;
 import android.os.Bundle;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
+import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.fbu.autonote.R;
 import com.fbu.autonote.adapters.NotesExploreAdapter;
+import com.fbu.autonote.models.Note;
+import com.fbu.autonote.utilities.Favorites;
+import com.fbu.autonote.utilities.LRUCache;
+import com.fbu.autonote.utilities.RecentNotesManager;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.gms.tasks.Task;
+import com.google.android.gms.tasks.Tasks;
 import com.google.android.material.tabs.TabItem;
 import com.google.android.material.tabs.TabLayout;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 
 import org.jetbrains.annotations.NotNull;
+
+import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.List;
 
 import es.dmoral.toasty.Toasty;
 
@@ -31,6 +51,12 @@ public class ProfileFragment extends Fragment {
     RecyclerView rvProfileNotes;
     NotesExploreAdapter notesAdapter;
     TextView tvDisplayName;
+    Favorites favorites;
+    DatabaseReference databaseReference;
+    Context context;
+    List<Note> recentNotes;
+    List<DatabaseReference> references;
+    public static final String TAG = "ProfileFragment";
 
     public ProfileFragment() {
         // Required empty public constructor
@@ -46,8 +72,8 @@ public class ProfileFragment extends Fragment {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
     }
+
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -62,6 +88,15 @@ public class ProfileFragment extends Fragment {
         tabLayout = view.findViewById(R.id.tabLayout);
         tabFavorites = view.findViewById(R.id.tabFavorites);
         tabRecent = view.findViewById(R.id.tabRecent);
+        recentNotes = new ArrayList<>();
+        references = new ArrayList<>();
+        rvProfileNotes = view.findViewById(R.id.rvProfileNotes);
+        context = getContext();
+        favorites = new Favorites(context);
+        notesAdapter = new NotesExploreAdapter(getContext(), favorites);
+        LinearLayoutManager linearLayoutManager = new LinearLayoutManager(context);
+        rvProfileNotes.setLayoutManager(linearLayoutManager);
+        rvProfileNotes.setAdapter(notesAdapter);
         tabLayout.addOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
             @Override
             public void onTabSelected(TabLayout.Tab tab) {
@@ -87,6 +122,27 @@ public class ProfileFragment extends Fragment {
     }
 
     private void populateWithRecent() {
+        RecentNotesManager recentNotesManager = RecentNotesManager.getInstance();
+        LRUCache<String> cache = recentNotesManager.getContainer();
+        List<Task<DataSnapshot>> loadNotesTaskList = new LinkedList<>();
 
+        for (LRUCache<String> it = cache; it.hasNext(); ) {
+            String data = it.next();
+            DatabaseReference noteReference = FirebaseDatabase.getInstance().getReference(data);
+            loadNotesTaskList.add(noteReference.get());
+            references.add(noteReference);
+        }
+        Task<List<Task<DataSnapshot>>>  loadTask = Tasks.whenAllSuccess(loadNotesTaskList);
+        loadTask.addOnSuccessListener(new OnSuccessListener<List<Task<DataSnapshot>>>() {
+            @Override
+            public void onSuccess(List<Task<DataSnapshot>> tasks) {
+                for (Object raw : tasks) {
+                    DataSnapshot snapshot = (DataSnapshot) raw;
+                    Note note = Note.fromDataSnapshot(snapshot);
+                    recentNotes.add(note);
+                }
+                notesAdapter.overrideContainer(recentNotes);
+            }
+        });
     }
 }
