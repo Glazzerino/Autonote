@@ -10,9 +10,10 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.io.OutputStreamWriter;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 public class Favorites {
@@ -35,6 +36,14 @@ public class Favorites {
         } catch (IOException e) {
             Log.e(TAG, e.toString());
         }
+    }
+
+    public List<String> getAll() {
+        List<String> allUris = new ArrayList<>(20);
+        for (Set<String> uris : mainContainer.values()) {
+            allUris.addAll(uris);
+        }
+        return allUris;
     }
 
     private void attemptInsert(String topic, String uri) {
