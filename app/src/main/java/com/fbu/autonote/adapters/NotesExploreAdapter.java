@@ -41,8 +41,8 @@ public class NotesExploreAdapter extends RecyclerView.Adapter<NotesExploreAdapte
     String topic;
     boolean showFavoritesOnly;
 
-    //40MB
-    public static final long BYTE_DOWNLOAD_LIMIT = 40000000;
+    //10MB
+    public static final long BYTE_DOWNLOAD_LIMIT = 10000000;
     public NotesExploreAdapter(Context context, Favorites favoritesManager, String topic) {
         this.context = context;
         notes = new ArrayList<>();
@@ -60,8 +60,8 @@ public class NotesExploreAdapter extends RecyclerView.Adapter<NotesExploreAdapte
     }
 
     public void overrideContainer(List<Note> newContainer) {
-        this.notes = newContainer;
-        this.notifyDataSetChanged();
+        notes = newContainer;
+        notifyDataSetChanged();
     }
 
     @NonNull

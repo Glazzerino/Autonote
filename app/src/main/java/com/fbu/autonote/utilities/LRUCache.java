@@ -43,7 +43,11 @@ public class LRUCache<T> implements Iterator<T> {
 
     @Override
     public boolean hasNext() {
-        return (current != null);
+        if (current != null) {
+            return true;
+        }
+        current = container.getFront();
+        return false;
     }
 
     @Override

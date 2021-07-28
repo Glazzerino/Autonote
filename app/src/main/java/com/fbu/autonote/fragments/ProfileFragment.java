@@ -56,6 +56,8 @@ public class ProfileFragment extends Fragment {
     Context context;
     List<Note> recentNotes;
     List<DatabaseReference> references;
+    LinearLayoutManager linearLayoutManager;
+    LRUCache<String> cache;
     public static final String TAG = "ProfileFragment";
 
     public ProfileFragment() {
@@ -92,39 +94,19 @@ public class ProfileFragment extends Fragment {
         references = new ArrayList<>();
         rvProfileNotes = view.findViewById(R.id.rvProfileNotes);
         context = getContext();
-        favorites = new Favorites(context);
+        favorites = new Favorites(getContext());
         notesAdapter = new NotesExploreAdapter(getContext(), favorites);
-        LinearLayoutManager linearLayoutManager = new LinearLayoutManager(context);
+        linearLayoutManager = new LinearLayoutManager(getContext());
         rvProfileNotes.setLayoutManager(linearLayoutManager);
         rvProfileNotes.setAdapter(notesAdapter);
-        tabLayout.addOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
-            @Override
-            public void onTabSelected(TabLayout.Tab tab) {
-                switch (tab.getPosition()) {
-                    //Recent
-                    case 0:
-                        Toasty.info(getContext(), "Hello recents", Toasty.LENGTH_SHORT).show();
-                        populateWithRecent();
-                        break;
-                    //Favorites
-                    case 1:
-                        Toasty.info(getContext(), "Hello Favs", Toasty.LENGTH_SHORT).show();
-                        break;
-                }
-            }
-            @Override
-            public void onTabUnselected(TabLayout.Tab tab) {
-            }
-            @Override
-            public void onTabReselected(TabLayout.Tab tab) {
-            }
-        });
+        populateWithRecent();
     }
+
 
     private void populateWithRecent() {
         RecentNotesManager recentNotesManager = RecentNotesManager.getInstance();
-        LRUCache<String> cache = recentNotesManager.getContainer();
         List<Task<DataSnapshot>> loadNotesTaskList = new LinkedList<>();
+        cache = recentNotesManager.getContainer();
 
         for (LRUCache<String> it = cache; it.hasNext(); ) {
             String data = it.next();
@@ -132,6 +114,8 @@ public class ProfileFragment extends Fragment {
             loadNotesTaskList.add(noteReference.get());
             references.add(noteReference);
         }
+        notesAdapter.clearContainer();
+        notesAdapter.notifyDataSetChanged();
         Task<List<Task<DataSnapshot>>>  loadTask = Tasks.whenAllSuccess(loadNotesTaskList);
         loadTask.addOnSuccessListener(new OnSuccessListener<List<Task<DataSnapshot>>>() {
             @Override
@@ -139,9 +123,9 @@ public class ProfileFragment extends Fragment {
                 for (Object raw : tasks) {
                     DataSnapshot snapshot = (DataSnapshot) raw;
                     Note note = Note.fromDataSnapshot(snapshot);
-                    recentNotes.add(note);
+                    notesAdapter.addToNoteContainer(note);
                 }
-                notesAdapter.overrideContainer(recentNotes);
+                notesAdapter.notifyDataSetChanged();
             }
         });
     }

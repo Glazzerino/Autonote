@@ -71,6 +71,5 @@ public class FullCardNoteFragment extends Fragment {
                         Log.d(TAG, "Load cleared");
                     }
                 });
-
     }
 }
