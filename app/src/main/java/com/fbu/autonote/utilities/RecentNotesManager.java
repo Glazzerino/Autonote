@@ -18,7 +18,7 @@ public class RecentNotesManager {
     Context context;
     public static final String TAG  = "RecentNotesManager";
     public static final String FILENAME = "recentNotes.txt";
-    public static final int CAPACITY = 10;
+    public static final int CAPACITY = 5;
     LRUCache<String> cache;
     private static final RecentNotesManager instance = new RecentNotesManager();
     /**

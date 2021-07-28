@@ -100,6 +100,33 @@ public class ProfileFragment extends Fragment {
         rvProfileNotes.setLayoutManager(linearLayoutManager);
         rvProfileNotes.setAdapter(notesAdapter);
         populateWithRecent();
+        tabLayout.addOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
+            @Override
+            public void onTabSelected(TabLayout.Tab tab) {
+                switch (tab.getPosition()) {
+                    case 0:
+                        populateWithRecent();
+                        break;
+                    case 1:
+                        populateWithFavorites();
+                        break;
+                }
+            }
+
+            @Override
+            public void onTabUnselected(TabLayout.Tab tab) {
+
+            }
+
+            @Override
+            public void onTabReselected(TabLayout.Tab tab) {
+
+            }
+        });
+    }
+
+    private void populateWithFavorites() {
+
     }
 
 

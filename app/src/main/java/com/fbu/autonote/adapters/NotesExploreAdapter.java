@@ -128,7 +128,7 @@ public class NotesExploreAdapter extends RecyclerView.Adapter<NotesExploreAdapte
 
         protected void bind(Note note) {
             String keywords = new String();
-            isFavorite = favorites.checkIfFavorite(note.getUrl(), topic);
+            isFavorite = favorites.checkIfFavorite(note.getUrl(), note.getTopic());
             if (showFavoritesOnly && !isFavorite) {
                 disableVisibility();
             }
@@ -149,11 +149,11 @@ public class NotesExploreAdapter extends RecyclerView.Adapter<NotesExploreAdapte
                 public void onClick(View v) {
                     //if it's not in favorites list add it
                     if (!isFavorite) {
-                        favorites.addFav(note.getUrl(), topic);
+                        favorites.addFav(note.getUrl(), note.getTopic());
                         isFavorite = true;
                         setBtnFav(true);
                     } else {
-                        favorites.remove(note.getUrl(), topic);
+                        favorites.remove(note.getUrl(), note.getTopic());
                         setBtnFav(false);
                         isFavorite = false;
                     }

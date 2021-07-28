@@ -78,12 +78,14 @@ public class NotesExploreActivity extends AppCompatActivity {
                 switch (checkedId) {
                     case R.id.btnShowAll:
                         if (isChecked) {
-                            showAll();
+                            notesExploreAdapter.setShowFavoritesOnly(false);
+                            notesExploreAdapter.notifyDataSetChanged();
                         }
                         break;
                     case R.id.btnShowFavs:
                         if (isChecked) {
-                            showFavoritesOnly();
+                            notesExploreAdapter.setShowFavoritesOnly(true);
+                            notesExploreAdapter.notifyDataSetChanged();
                         }
                         break;
                 }
@@ -91,15 +93,6 @@ public class NotesExploreActivity extends AppCompatActivity {
         });
     }
 
-    private void showAll() {
-        notesExploreAdapter.setShowFavoritesOnly(false);
-        notesExploreAdapter.notifyDataSetChanged();
-    }
-
-    private void showFavoritesOnly() {
-        notesExploreAdapter.setShowFavoritesOnly(true);
-        notesExploreAdapter.notifyDataSetChanged();
-    }
 
     //loads notes from firebase onto the adapter's container
     private void populateAdapterContainer() {

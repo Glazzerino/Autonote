@@ -37,7 +37,7 @@ public class LinkedListCustom<T> {
 
     public void deleteFront() {
         this.front = front.next;
-        size--;
+        front.prev = null;
     }
 
     public void moveToBack(CustomNode<T> node) throws NullPointerException{
