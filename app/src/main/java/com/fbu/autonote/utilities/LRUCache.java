@@ -13,7 +13,7 @@ public class LRUCache<T> implements Iterator<T> {
      * @field pointerTable stores a pointer to the item inside the queue for fast verification of existence
      * @field next used as part of the implementation of the Iterator<T> interface
      */
-    protected LinkedListCustom<T> container;
+    public LinkedListCustom<T> container;
     private HashMap<T, CustomNode<T>> pointerTable;
     CustomNode<T> current; //For iteration
     int limit;
@@ -38,7 +38,7 @@ public class LRUCache<T> implements Iterator<T> {
                 container.deleteFront();
             }
         }
-        this.current = container.getFront();
+        this.current = container.getBack();
     }
 
     @Override
@@ -46,14 +46,14 @@ public class LRUCache<T> implements Iterator<T> {
         if (current != null) {
             return true;
         }
-        current = container.getFront();
+        current = container.getBack();
         return false;
     }
 
     @Override
     public T next() {
        T data = current.data;
-       current = current.next;
+       current = current.prev;
        return data;
     }
 

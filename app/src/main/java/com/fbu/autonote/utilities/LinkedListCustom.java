@@ -36,24 +36,26 @@ public class LinkedListCustom<T> {
     }
 
     public void deleteFront() {
-        this.front = front.next;
+        front = front.next;
         front.prev = null;
     }
 
-    public void moveToBack(CustomNode<T> node) throws NullPointerException{
-        if (node.prev != null && node.next != null) {
+    //Assumes node is present in list
+    public void moveToBack(CustomNode<T> node) throws NullPointerException {
+        if (node != back && node != front) {
             node.prev.next = node.next;
             node.next.prev = node.prev;
             back.next = node;
             node.prev = back;
             node.next = null;
-            this.back = node;
+        } else if (node == front) {
+           back.next = node;
+           node.prev = back;
+           front = node.next;
+           front.prev = null;
+           node.next = null;
         }
-        else if (node.next != null) {
-            node.next.next = node;
-            node.prev = node.next;
-            node.next = null;
-        }
+        this.back = node;
     }
 
     public CustomNode<T> getBack() {
