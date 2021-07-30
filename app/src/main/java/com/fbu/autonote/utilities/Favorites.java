@@ -3,6 +3,8 @@ package com.fbu.autonote.utilities;
 import android.content.Context;
 import android.util.Log;
 
+import com.fbu.autonote.models.Note;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
@@ -45,6 +47,15 @@ public class Favorites {
         }
     }
 
+    public boolean delete(Note note) {
+        String noteTopic = note.getTopic();
+        if (mainContainer.containsKey(noteTopic) && mainContainer.get(noteTopic).contains(note.getUrl())) {
+            mainContainer.get(noteTopic).remove(note.getUrl());
+            return true;
+        }
+        return false;
+    }
+
     public List<String> getAll() {
         List<String> allUris = new ArrayList<>(20);
         for (Set<String> uris : mainContainer.values()) {
@@ -61,8 +72,8 @@ public class Favorites {
         Log.d(TAG, String.format("Item added to %s: %s", topic, uri));
     }
 
-    public void addFav(String newNoteUri, String topic) {
-        attemptInsert(topic, newNoteUri);
+    public void addFav(Note note) {
+        attemptInsert(note.getTopic(), note.getUrl());
         save();
     }
 
@@ -89,9 +100,9 @@ public class Favorites {
         return mainContainer.get(topic);
     }
 
-    public boolean remove(String uri, String topic) {
+    public boolean remove(Note note) {
         try {
-            mainContainer.get(topic).remove(uri);
+            mainContainer.get(note.getTopic()).remove(note.getUrl());
             save();
             return true;
         } catch (NullPointerException e) {
@@ -100,9 +111,10 @@ public class Favorites {
         }
     }
 
-    public boolean checkIfFavorite(String uri, String topic) {
-        if (mainContainer.containsKey(topic)) {
-            boolean result = mainContainer.get(topic).contains(uri);
+    public boolean checkIfFavorite(Note note) {
+        String noteTopic = note.getTopic();
+        if (mainContainer.containsKey(noteTopic)) {
+            boolean result = mainContainer.get(noteTopic).contains(note.getUrl());
             Log.d(TAG, "CHECKED IF FAVORITE: " + result);
             return result;
         }

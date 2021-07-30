@@ -1,6 +1,7 @@
 package com.fbu.autonote.activities;
 
 import android.content.Context;
+import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.transition.Slide;
 import android.util.Log;
@@ -21,6 +22,7 @@ import com.fbu.autonote.fragments.FullCardNoteFragment;
 import com.fbu.autonote.fragments.TextNoteFragment;
 import com.fbu.autonote.models.Note;
 import com.fbu.autonote.utilities.Favorites;
+import com.fbu.autonote.utilities.RecentNotesManager;
 import com.google.android.material.button.MaterialButtonToggleGroup;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DatabaseError;
@@ -40,7 +42,6 @@ public class FullScreenCardActivity extends AppCompatActivity implements Confirm
     DatabaseReference databaseReference;
     Note note;
     Context context;
-    Favorites favoritesManager;
 
     public final static String TAG = "FullScreenCardActivity";
 
@@ -56,14 +57,13 @@ public class FullScreenCardActivity extends AppCompatActivity implements Confirm
         toggleGroup = findViewById(R.id.toggleGroupFullCard);
         fragmentManager = getSupportFragmentManager();
         context = this;
-
         note = getIntent().getParcelableExtra("note");
+        autoToggleFavBtn();
         if (note == null) {
             Log.e(TAG, "Error: Note not found within intent");
         }
         fragment = FullCardNoteFragment.newInstance(note.getImageURL());
         startFragment();
-
         toggleGroup.addOnButtonCheckedListener(new MaterialButtonToggleGroup.OnButtonCheckedListener() {
             @Override
             public void onButtonChecked(MaterialButtonToggleGroup group, int checkedId, boolean isChecked) {
@@ -90,7 +90,8 @@ public class FullScreenCardActivity extends AppCompatActivity implements Confirm
         btnFavNote.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-
+                Favorites.getInstance().addFav(note);
+                autoToggleFavBtn();
             }
         });
     }
@@ -110,6 +111,8 @@ public class FullScreenCardActivity extends AppCompatActivity implements Confirm
         noteReference.child(note.getDate()).removeValue(new DatabaseReference.CompletionListener() {
             @Override
             public void onComplete(@Nullable @org.jetbrains.annotations.Nullable DatabaseError error, @NonNull @NotNull DatabaseReference ref) {
+                RecentNotesManager.getInstance().deleteNote(note);
+                Favorites.getInstance().remove(note);
                 Toasty.info(context, "Note deleted", Toasty.LENGTH_SHORT).show();
                 finish();
             }
@@ -124,5 +127,13 @@ public class FullScreenCardActivity extends AppCompatActivity implements Confirm
     @Override
     public void onDialogNegativeClick(DialogFragment dialog) {
         Log.d(TAG, "Note deletion aborted");
+    }
+
+    private void autoToggleFavBtn() {
+        Drawable drawable = getDrawable(R.drawable.ic_baseline_star_outline_24);
+        if (Favorites.getInstance().checkIfFavorite(note)) {
+            drawable = getDrawable(R.drawable.ic_baseline_star_24);
+        }
+        btnFavNote.setImageDrawable(drawable);
     }
 }

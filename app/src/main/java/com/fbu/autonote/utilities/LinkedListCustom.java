@@ -31,29 +31,34 @@ public class LinkedListCustom<T> {
     }
 
     public void deleteFront() {
-        front = front.next;
+        front = this.front.next;
         if (front != null) {
             front.prev = null;
         }
     }
 
     public void deleteBack() {
-        back = back.prev;
+        back = this.back.prev;
         if (back != null) {
             back.next = null;
         }
     }
 
     public void deleteNode(CustomNode<T> node) {
-        if (node == front) {
+        if (node == back && node == front) {
+            front = back = null;
+        }
+        else if (node == front) {
             deleteFront();
         } else if (node == back) {
             deleteBack();
         } else {
             node.prev.next = node.next;
             node.next.prev = node.prev;
-            node = null;
+            node.prev = null;
+            node.next = null;
         }
+        size--;
     }
 
     //Assumes node is present in list

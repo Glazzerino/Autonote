@@ -309,7 +309,8 @@ public class MainActivity extends AppCompatActivity {
                     .child(note.getTopic())
                     .child(nowDate)
                     .child(note.getNoteId());
-
+            String cleanText = note.getTextContent().replace("\\n", " ");
+            note.setTextContent(cleanText);
             DatabaseReference keywords = noteReference.child("keywords");
             for (String keyword : note.getKeywords()) {
                 noteReference.setValue(note.getKeywords());

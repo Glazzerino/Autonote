@@ -32,13 +32,19 @@ public class DeleteTest {
     }
 
     @Test
-    public void deleteMiddle() {
-        int limit = 100;
+    public void confirmTotalDeletion() {
+        int limit = 3;
         LRUCache<Integer> cache = new LRUCache<>(limit);
         for (int i=0; i<limit; i++) {
             cache.update(i);
         }
-        cache.delete(50);
-        assertEquals(null, cache.getNode(50));
+        cache.delete(0);
+        cache.delete(1);
+        cache.delete(2);
+
+        for (LRUCache<Integer> it = cache; it.hasNext(); ) {
+            System.out.println(String.valueOf(it.next()));
+        }
+        assertEquals(0, cache.size());
     }
 }

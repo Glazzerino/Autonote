@@ -1,6 +1,7 @@
 package com.fbu.autonote.fragments;
 
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -16,7 +17,7 @@ import org.jetbrains.annotations.NotNull;
 
 public class TextNoteFragment extends Fragment {
     TextView tvNoteText;
-
+    public static final String TAG = "TextNoteFragment";
     public TextNoteFragment() {
     }
 
@@ -45,6 +46,8 @@ public class TextNoteFragment extends Fragment {
         super.onViewCreated(view, savedInstanceState);
         tvNoteText = view.findViewById(R.id.tvNoteText);
         String textContent = getArguments().getString("textContent");
+        textContent = textContent.replace("\\n", " ");
+        Log.d(TAG, textContent);
         tvNoteText.setText(textContent);
     }
 }

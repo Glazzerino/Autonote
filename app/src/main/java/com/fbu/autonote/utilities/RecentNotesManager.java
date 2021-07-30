@@ -3,6 +3,7 @@ package com.fbu.autonote.utilities;
 import android.content.Context;
 import android.util.Log;
 
+import com.fbu.autonote.models.CustomNode;
 import com.fbu.autonote.models.Note;
 
 import java.io.BufferedReader;
@@ -66,7 +67,8 @@ public class RecentNotesManager {
     }
 
     public void deleteNote(Note note) {
-
+        cache.delete(note.getUrl());
+        save();
     }
 
     public LRUCache<String> getContainer() {
