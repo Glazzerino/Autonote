@@ -25,6 +25,16 @@ public class LRUCache<T> implements Iterator<T> {
         current = null;
     }
 
+    public void delete(T data) {
+        CustomNode<T> node = pointerTable.get(data);
+        pointerTable.remove(data);
+        container.deleteNode(node);
+    }
+
+    public CustomNode<T> getNode(T data) {
+        return pointerTable.get(data);
+    }
+
     public void update(T data) {
         if (pointerTable.containsKey(data)) {
             container.moveToBack(pointerTable.get(data));

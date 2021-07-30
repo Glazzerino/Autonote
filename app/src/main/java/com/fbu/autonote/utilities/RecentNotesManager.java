@@ -62,6 +62,10 @@ public class RecentNotesManager {
         save();
     }
 
+    public void deleteNote(Note note) {
+
+    }
+
     public LRUCache<String> getContainer() {
         return cache;
     }

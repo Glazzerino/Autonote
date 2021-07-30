@@ -1,11 +1,6 @@
 package com.fbu.autonote.utilities;
 
-import android.util.Log;
-
 import com.fbu.autonote.models.CustomNode;
-
-import java.util.HashMap;
-import java.util.LinkedList;
 
 public class LinkedListCustom<T> {
     /**
@@ -37,7 +32,27 @@ public class LinkedListCustom<T> {
 
     public void deleteFront() {
         front = front.next;
-        front.prev = null;
+        if (front != null){
+            front.prev = null;
+        }
+    }
+    public void deleteBack() {
+        back = back.prev;
+        if (back != null) {
+            back.next = null;
+        }
+    }
+
+    public void deleteNode(CustomNode<T> node) {
+        if (node == front) {
+            deleteFront();
+        } else if (node  == back) {
+            deleteBack();
+        } else {
+            node.prev.next = node.next;
+            node.next.prev = node.prev;
+            node = null;
+        }
     }
 
     //Assumes node is present in list
