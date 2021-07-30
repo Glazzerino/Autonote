@@ -20,8 +20,8 @@ import androidx.fragment.app.FragmentManager;
 
 import com.fbu.autonote.R;
 import com.fbu.autonote.fragments.ProfileFragment;
-import com.fbu.autonote.fragments.TopicSelectionFragment;
 import com.fbu.autonote.fragments.ScanResultsFragment;
+import com.fbu.autonote.fragments.TopicSelectionFragment;
 import com.fbu.autonote.models.Note;
 import com.fbu.autonote.utilities.Favorites;
 import com.fbu.autonote.utilities.RecentNotesManager;
@@ -207,13 +207,13 @@ public class MainActivity extends AppCompatActivity {
 
     private void doRealtimeDbUpload(String randomId, List<Note> newNotes) {
         String collectionId = randomId();
-        Task<List<Task<Void>>> uploadDataToDbTask = getUploadToDatabase(randomId,  newNotes);
+        Task<List<Task<Void>>> uploadDataToDbTask = getUploadToDatabase(randomId, newNotes);
         uploadDataToDbTask.addOnSuccessListener(new OnSuccessListener<List<Task<Void>>>() {
             @Override
             public void onSuccess(List<Task<Void>> tasks) {
                 fragment.getView().findViewById(R.id.progressIndicator)
                         .setVisibility(View.INVISIBLE);
-                Toasty.success(context, "Notes processed!",Toasty.LENGTH_SHORT).show();
+                Toasty.success(context, "Notes processed!", Toasty.LENGTH_SHORT).show();
             }
         });
     }
@@ -261,9 +261,9 @@ public class MainActivity extends AppCompatActivity {
                 @Override
                 public void onFailure(@NonNull @NotNull Exception e) {
                     Log.e(TAG,
-                    String.format("Error uploading file %s : %s",
-                            imageFile.getName(),
-                            e.toString()));
+                            String.format("Error uploading file %s : %s",
+                                    imageFile.getName(),
+                                    e.toString()));
                 }
             }).addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
                 @Override
@@ -291,7 +291,7 @@ public class MainActivity extends AppCompatActivity {
 
     /**
      * @param collectionId name of the "directory" in firebase for the new collection of notes
-     * @param newNotes list of notes from which to pull data from
+     * @param newNotes     list of notes from which to pull data from
      * @return Meta-task of database uploading tasks
      */
     private Task<List<Task<Void>>> getUploadToDatabase(String collectionId, List<Note> newNotes) {
@@ -301,7 +301,7 @@ public class MainActivity extends AppCompatActivity {
         DatabaseReference noteReference;
         List<Task<Void>> uploadTasksList = new ArrayList<>();
         //Iterate over each Note object to upload its data to the realtime database
-        for (int i=0; i<newNotes.size(); i++) {
+        for (int i = 0; i < newNotes.size(); i++) {
             Note note = newNotes.get(i);
             note.setDate(nowDate);
             //add note as topic/collecitonId/noteId inside database filesystem
@@ -327,13 +327,13 @@ public class MainActivity extends AppCompatActivity {
         for (ScanResult.Scan scan : scans) {
             byte[] byteArrayImage = getByteArray(scan.enhancedImageFile);
             JsonObject request = getAnnotationRequest(byteArrayImage);
-            
+
             Task<JsonElement> annotationTask = getAnnotateImageTask(request.toString());
             //Add a failure listener to know which task failed and why
             annotationTask.addOnFailureListener(new OnFailureListener() {
                 @Override
                 public void onFailure(@NonNull @NotNull Exception e) {
-                    Log.e(TAG, "Error getting transcription: "+ e.toString());
+                    Log.e(TAG, "Error getting transcription: " + e.toString());
                 }
             });
             annotationTasksList.add(annotationTask);
@@ -369,21 +369,21 @@ public class MainActivity extends AppCompatActivity {
 
     private Task<JsonElement> getAnnotateImageTask(String request) {
         return firebaseFunctions
-            .getHttpsCallable("annotateImage")
-            .call(request)
-            .continueWith(new Continuation<HttpsCallableResult, JsonElement>() {
-                @Override
-                public JsonElement then(@NonNull Task<HttpsCallableResult> task) {
-                    return JsonParser.parseString(new Gson().toJson(task.getResult().getData()));
-                }
-            });
+                .getHttpsCallable("annotateImage")
+                .call(request)
+                .continueWith(new Continuation<HttpsCallableResult, JsonElement>() {
+                    @Override
+                    public JsonElement then(@NonNull Task<HttpsCallableResult> task) {
+                        return JsonParser.parseString(new Gson().toJson(task.getResult().getData()));
+                    }
+                });
     }
 
     /**
-     * @about Function fabricates a request object meant to get topic classification data
      * @param newNotes list of notes which contain the raw text which will be classified
-     * @param reqMode enum object that determines the API call mode. More info here: <a href="https://uclassify.com/docs/restapi#readcalls-classify"/>
+     * @param reqMode  enum object that determines the API call mode. More info here: <a href="https://uclassify.com/docs/restapi#readcalls-classify"/>
      * @return request object
+     * @about Function fabricates a request object meant to get topic classification data
      */
     public Request getUclassifyRequest(List<Note> newNotes, uClassifyRequestMode reqMode) {
         JSONArray texts = new JSONArray();
@@ -421,7 +421,7 @@ public class MainActivity extends AppCompatActivity {
             e.printStackTrace();
         }
 
-        for (int j = 0; j<textsResults.length(); j++) {
+        for (int j = 0; j < textsResults.length(); j++) {
             JSONArray classifications = null;
             try {
                 classifications = textsResults.getJSONObject(j).getJSONArray("classification");
@@ -431,8 +431,8 @@ public class MainActivity extends AppCompatActivity {
 
             //Iterate over each topic and extract the one with the most weight
             double max = 0;
-            String maxTopic = new String();
-            for (int i=0; i<classifications.length(); i++) {
+            String maxTopic = "";
+            for (int i = 0; i < classifications.length(); i++) {
                 JSONObject topicJson = null;
                 try {
                     topicJson = classifications.getJSONObject(i);
@@ -462,11 +462,11 @@ public class MainActivity extends AppCompatActivity {
     }
 
     /**
-     * @param tasks Task container of the annotation tasks return by the getAnnotationTasks method
+     * @param tasks    Task container of the annotation tasks return by the getAnnotationTasks method
      * @param newNotes reference to list of note objects
      */
     private void getTextsFromAnnotationTask(Task<List<Task<JsonElement>>> tasks, List<Note> newNotes) {
-        int i=0;
+        int i = 0;
         for (Object rawObject : tasks.getResult()) {
             JsonArray json = (JsonArray) rawObject;
             JsonObject annotation = json.get(0)
@@ -479,6 +479,7 @@ public class MainActivity extends AppCompatActivity {
             newNotes.get(i++).setTextContent(text);
         }
     }
+
     private void executeKeywordsApiCall(List<Note> newNotes, String newNoteCollectionId) {
         Request keywordsRequest = getUclassifyRequest(newNotes, uClassifyRequestMode.KEYWORDS);
         client.newCall(keywordsRequest).enqueue(new Callback() {
@@ -505,20 +506,20 @@ public class MainActivity extends AppCompatActivity {
      * @throws JSONException
      */
     private void processKeywordsApiResponse(String data, List<Note> newNotes, String newNoteCollectionId) throws JSONException {
-        Log.d(TAG,"keyword data: " + data);
+        Log.d(TAG, "keyword data: " + data);
         JSONArray responseArray = new JSONArray(data);
         //The keywords API call returns a JSON array for each text provided to it.
         //Each of these arrays contains yet another array, which has 560 elements, a class name (topic),
         // a keyword and a weight (confidence in topic)
-        for (int j = 0; j<newNotes.size(); j++) {
+        for (int j = 0; j < newNotes.size(); j++) {
             JSONArray individualTextArray = responseArray.getJSONArray(j);
             individualTextArray = responseArray.getJSONArray(j);
             String noteTopic = newNotes.get(j).getTopic();
 
             //get general topic from topic result
-            noteTopic = noteTopic.substring(0, noteTopic.indexOf("_")+1);
+            noteTopic = noteTopic.substring(0, noteTopic.indexOf("_") + 1);
             Log.d(TAG, "Keyword topic: " + noteTopic);
-            for (int i = 0; i<individualTextArray.length(); i++) {
+            for (int i = 0; i < individualTextArray.length(); i++) {
                 Note note = newNotes.get(j);
                 JSONObject responseObj = individualTextArray.getJSONObject(i);
                 String wordCandidate = responseObj.getString("keyword");

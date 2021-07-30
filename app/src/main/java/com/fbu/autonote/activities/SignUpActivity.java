@@ -1,10 +1,5 @@
 package com.fbu.autonote.activities;
 
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.widget.AppCompatButton;
-
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
@@ -12,13 +7,15 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.EditText;
-import android.widget.Toast;
+
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.AppCompatButton;
 
 import com.fbu.autonote.R;
 import com.google.android.gms.tasks.Continuation;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnSuccessListener;
-import com.google.android.gms.tasks.SuccessContinuation;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
@@ -37,6 +34,7 @@ public class SignUpActivity extends AppCompatActivity {
     FirebaseAuth authManager;
     EditText etDisplayName;
     Context context;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -76,7 +74,7 @@ public class SignUpActivity extends AppCompatActivity {
                 //Continue the account creation task with an update to the display name
                 @Override
                 public Task<Void> then(@NonNull @NotNull Task<AuthResult> task) throws Exception {
-                    UserProfileChangeRequest addNameRequest  = new UserProfileChangeRequest
+                    UserProfileChangeRequest addNameRequest = new UserProfileChangeRequest
                             .Builder()
                             .setDisplayName(displayName)
                             .build();

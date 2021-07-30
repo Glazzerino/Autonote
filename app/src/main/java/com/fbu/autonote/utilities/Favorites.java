@@ -28,7 +28,8 @@ public class Favorites {
     public static final String TAG = "Favorites";
     public static Favorites instance = new Favorites();
 
-    public Favorites() { }
+    public Favorites() {
+    }
 
     public static Favorites getInstance() {
         return instance;
@@ -84,7 +85,7 @@ public class Favorites {
         }
     }
 
-    public Set<String> getFavoritesList(String topic) throws NullPointerException{
+    public Set<String> getFavoritesList(String topic) throws NullPointerException {
         return mainContainer.get(topic);
     }
 
@@ -110,20 +111,20 @@ public class Favorites {
 
     private void loadData() throws IOException {
         favsFile = new File(context.getFilesDir(), FILENAME);
-        if (favsFile.exists()){
+        if (favsFile.exists()) {
             FileInputStream inputStream = new FileInputStream(favsFile);
             BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
             String fileLine = reader.readLine();
 
-            while(fileLine != null) {
+            while (fileLine != null) {
                 //Note topic goes before the note uri, behind the "_" character
                 Log.d(TAG, "file line: " + fileLine);
                 int separatorIndex = fileLine.indexOf("_");
                 String topic = null;
                 String uri = null;
                 try {
-                     topic = fileLine.substring(0, separatorIndex);
-                     uri = fileLine.substring(separatorIndex + 1);
+                    topic = fileLine.substring(0, separatorIndex);
+                    uri = fileLine.substring(separatorIndex + 1);
                     //If hashmap has not initialized the topic set then do so
                     attemptInsert(topic, uri);
                 } catch (StringIndexOutOfBoundsException e) {
@@ -137,7 +138,7 @@ public class Favorites {
 
     private void displayContainer() {
         for (String topic : mainContainer.keySet()) {
-            Log.d(TAG, "__"+topic+"__");
+            Log.d(TAG, "__" + topic + "__");
             for (String uri : mainContainer.get(topic)) {
                 Log.d(TAG, uri);
             }

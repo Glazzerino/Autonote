@@ -34,8 +34,10 @@ public class ScanResultsFragment extends Fragment {
     LinearProgressIndicator progressIndicator;
     public static final String TAG = "ScanResultsFragment";
     public List<ScanResult.Scan> scans;
+
     //Required empty constructor
-    public ScanResultsFragment() { }
+    public ScanResultsFragment() {
+    }
 
     public static ScanResultsFragment newInstance(List<ScanResult.Scan> scans) {
         ScanResultsFragment fragment = new ScanResultsFragment();
@@ -52,7 +54,7 @@ public class ScanResultsFragment extends Fragment {
         super.onCreate(savedInstanceState);
         //Avoids excessive function calling
         context = getContext();
-        Log.d(TAG, "SCANS LEN: " + String.valueOf(scans.size()));
+        Log.d(TAG, "SCANS LEN: " + scans.size());
     }
 
 

@@ -32,10 +32,11 @@ public class LinkedListCustom<T> {
 
     public void deleteFront() {
         front = front.next;
-        if (front != null){
+        if (front != null) {
             front.prev = null;
         }
     }
+
     public void deleteBack() {
         back = back.prev;
         if (back != null) {
@@ -46,7 +47,7 @@ public class LinkedListCustom<T> {
     public void deleteNode(CustomNode<T> node) {
         if (node == front) {
             deleteFront();
-        } else if (node  == back) {
+        } else if (node == back) {
             deleteBack();
         } else {
             node.prev.next = node.next;
@@ -64,11 +65,11 @@ public class LinkedListCustom<T> {
             node.prev = back;
             node.next = null;
         } else if (node == front) {
-           back.next = node;
-           node.prev = back;
-           front = node.next;
-           front.prev = null;
-           node.next = null;
+            back.next = node;
+            node.prev = back;
+            front = node.next;
+            front.prev = null;
+            node.next = null;
         }
         this.back = node;
     }

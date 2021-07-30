@@ -1,21 +1,19 @@
 package com.fbu.autonote.activities;
 
+import android.content.Context;
+import android.os.Bundle;
+import android.transition.Slide;
+import android.util.Log;
+import android.view.Gravity;
+import android.view.View;
+import android.widget.ImageButton;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.DialogFragment;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
-
-import android.content.Context;
-import android.os.Bundle;
-import android.transition.Explode;
-import android.transition.Slide;
-import android.util.Log;
-import android.view.Gravity;
-import android.view.View;
-import android.view.Window;
-import android.widget.ImageButton;
 
 import com.fbu.autonote.R;
 import com.fbu.autonote.fragments.ConfirmDeleteFragment;
@@ -69,7 +67,7 @@ public class FullScreenCardActivity extends AppCompatActivity implements Confirm
         toggleGroup.addOnButtonCheckedListener(new MaterialButtonToggleGroup.OnButtonCheckedListener() {
             @Override
             public void onButtonChecked(MaterialButtonToggleGroup group, int checkedId, boolean isChecked) {
-                switch(checkedId) {
+                switch (checkedId) {
                     case R.id.btnTogglePicture:
                         fragment = FullCardNoteFragment.newInstance(note.getImageURL());
                         break;

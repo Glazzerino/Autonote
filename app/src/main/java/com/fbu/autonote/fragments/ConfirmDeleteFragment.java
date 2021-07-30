@@ -25,11 +25,13 @@ public class ConfirmDeleteFragment extends DialogFragment {
     DatabaseReference noteReference;
     public static final String TAG = "DialogFragment";
 
-    public ConfirmDeleteFragment() { }
+    public ConfirmDeleteFragment() {
+    }
 
     public interface DialogClickListener {
-        public void onDialogPositiveClick(DialogFragment dialog);
-        public void onDialogNegativeClick(DialogFragment dialog);
+        void onDialogPositiveClick(DialogFragment dialog);
+
+        void onDialogNegativeClick(DialogFragment dialog);
     }
 
     DialogClickListener dialogListener;
@@ -40,7 +42,7 @@ public class ConfirmDeleteFragment extends DialogFragment {
 
         try {
             dialogListener = (DialogClickListener) context;
-        } catch (ClassCastException e){
+        } catch (ClassCastException e) {
             Log.e(TAG, e.toString());
         }
     }

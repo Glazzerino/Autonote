@@ -2,18 +2,17 @@ package com.fbu.autonote.fragments;
 
 import android.content.Context;
 import android.os.Bundle;
+import android.util.Log;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
-
-import android.util.Log;
-import android.view.LayoutInflater;
-import android.view.View;
-import android.view.ViewGroup;
-import android.widget.TextView;
 
 import com.fbu.autonote.R;
 import com.fbu.autonote.adapters.TopicsAdapter;
@@ -37,6 +36,7 @@ public class TopicSelectionFragment extends Fragment {
     String userId;
 
     public static final String TAG = "HomeFragment";
+
     public TopicSelectionFragment() {
         // Required empty public constructor
     }
@@ -67,6 +67,7 @@ public class TopicSelectionFragment extends Fragment {
                 }
                 topicsAdapter.notifyDataSetChanged();
             }
+
             @Override
             public void onCancelled(@NonNull @NotNull DatabaseError error) {
                 Log.e(TAG, "Error getting list of topics: " + error.toString());

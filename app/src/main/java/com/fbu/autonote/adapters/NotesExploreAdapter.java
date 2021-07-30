@@ -44,6 +44,7 @@ public class NotesExploreAdapter extends RecyclerView.Adapter<NotesExploreAdapte
 
     //10MB
     public static final long BYTE_DOWNLOAD_LIMIT = 10000000;
+
     public NotesExploreAdapter(Context context, String topic) {
         this.context = context;
         notes = new ArrayList<>();
@@ -51,6 +52,7 @@ public class NotesExploreAdapter extends RecyclerView.Adapter<NotesExploreAdapte
         userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
         this.topic = topic;
     }
+
     public NotesExploreAdapter(Context context) {
         this.context = context;
         notes = new ArrayList<>();
@@ -86,6 +88,7 @@ public class NotesExploreAdapter extends RecyclerView.Adapter<NotesExploreAdapte
     public void clearContainer() {
         notes.clear();
     }
+
     public void addToNoteContainer(Note note) {
         notes.add(note);
     }
@@ -125,7 +128,7 @@ public class NotesExploreAdapter extends RecyclerView.Adapter<NotesExploreAdapte
         }
 
         protected void bind(Note note) {
-            String keywords = new String();
+            String keywords = "";
             Favorites favorites = Favorites.getInstance();
             isFavorite = favorites.checkIfFavorite(note.getUrl(), note.getTopic());
             if (showFavoritesOnly && !isFavorite) {

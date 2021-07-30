@@ -15,6 +15,7 @@ public class Note implements Parcelable {
     /**
      * Represents the data model that contains all note-related data.
      * These values match those of their firebase counterparts.
+     *
      * @note: This class is intended for runtime data representaton only. Storage should be managed by
      * the Firebase realtime database interface
      * @author: Francisco Zampora
@@ -80,6 +81,7 @@ public class Note implements Parcelable {
         this.url = url;
         this.keywords = new ArrayList<>(keywords);
     }
+
     public void setTopic(String topic) {
         this.topic = topic;
     }
@@ -94,7 +96,7 @@ public class Note implements Parcelable {
         note.setNoteId(snapshot.child("noteId").getValue(String.class));
         note.setTextContent(snapshot.child("textContent").getValue(String.class));
         note.setUrl(snapshot.getRef().getPath().toString());
-        for (DataSnapshot keyword : snapshot.child("keywords").getChildren()){
+        for (DataSnapshot keyword : snapshot.child("keywords").getChildren()) {
             note.keywords.add(keyword.getValue(String.class));
         }
         note.setImageURL(snapshot.child("imageURL").getValue(String.class));

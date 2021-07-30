@@ -24,6 +24,7 @@ public class ScanResultAdapter extends RecyclerView.Adapter<ScanResultAdapter.Vi
 
     public List<ScanResult.Scan> scans;
     Context context;
+
     public ScanResultAdapter(Context context, List<ScanResult.Scan> scans) {
         this.context = context;
         this.scans = scans;
@@ -54,6 +55,7 @@ public class ScanResultAdapter extends RecyclerView.Adapter<ScanResultAdapter.Vi
         ImageView ivScanResultPreview;
         TextView tvPositionResult;
         Bitmap scanBitmap;
+
         public ViewHolder(@NonNull @NotNull View itemView) {
             super(itemView);
             ivScanResultPreview = itemView.findViewById(R.id.ivResultPreview);

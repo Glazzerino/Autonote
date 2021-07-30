@@ -8,13 +8,13 @@ import java.util.Iterator;
 public class LRUCache<T> implements Iterator<T> {
     /**
      * @class This is a basic implementation of the LRU Cache Policy, which discards the item at the front of a queue
-     *  when the number of items exceeds a specified threshold
+     * when the number of items exceeds a specified threshold
      * @field limit non-inclusive limit of items allowed to exist inside the container
      * @field pointerTable stores a pointer to the item inside the queue for fast verification of existence
      * @field next used as part of the implementation of the Iterator<T> interface
      */
     public LinkedListCustom<T> container;
-    private HashMap<T, CustomNode<T>> pointerTable;
+    private final HashMap<T, CustomNode<T>> pointerTable;
     CustomNode<T> current; //For iteration
     int limit;
 
@@ -62,9 +62,9 @@ public class LRUCache<T> implements Iterator<T> {
 
     @Override
     public T next() {
-       T data = current.data;
-       current = current.prev;
-       return data;
+        T data = current.data;
+        current = current.prev;
+        return data;
     }
 
     public int size() {

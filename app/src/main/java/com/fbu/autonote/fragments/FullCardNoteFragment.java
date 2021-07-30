@@ -1,19 +1,16 @@
 package com.fbu.autonote.fragments;
 
 import android.content.Context;
-import android.graphics.Bitmap;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
-
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.fragment.app.Fragment;
-
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ImageButton;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.fragment.app.Fragment;
 
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.request.target.CustomTarget;
@@ -28,7 +25,9 @@ public class FullCardNoteFragment extends Fragment {
     Context context;
     TouchImageView touchImageView;
     public static final String TAG = "FullCardNoteFragment";
-    public FullCardNoteFragment() { }
+
+    public FullCardNoteFragment() {
+    }
 
     public static FullCardNoteFragment newInstance(String iamgeUrl) {
         FullCardNoteFragment fragment = new FullCardNoteFragment();

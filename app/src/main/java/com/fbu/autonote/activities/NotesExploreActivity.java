@@ -5,9 +5,6 @@ import android.content.Context;
 import android.os.Bundle;
 import android.transition.Explode;
 import android.util.Log;
-import android.view.View;
-import android.view.ViewGroup;
-import android.view.animation.Interpolator;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -18,7 +15,6 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.fbu.autonote.R;
 import com.fbu.autonote.adapters.NotesExploreAdapter;
 import com.fbu.autonote.models.Note;
-import com.fbu.autonote.utilities.Favorites;
 import com.google.android.material.button.MaterialButtonToggleGroup;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
@@ -29,9 +25,7 @@ import com.google.firebase.database.ValueEventListener;
 
 import org.jetbrains.annotations.NotNull;
 
-import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 import es.dmoral.toasty.Toasty;
@@ -109,7 +103,6 @@ public class NotesExploreActivity extends AppCompatActivity {
             public void onDataChange(@NonNull @NotNull DataSnapshot snapshot) {
                 notesExploreAdapter.clearContainer();
                 //Each topic has a collection inside of it, so we must iterate over each collection
-                int position = 0; //keep track of the number of additions to avoid excessive function calling
                 for (DataSnapshot collection : snapshot.getChildren()) {
                     String date = collection.getKey();
                     for (DataSnapshot noteSnapshot : collection.getChildren()) {

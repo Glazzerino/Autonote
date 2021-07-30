@@ -16,16 +16,19 @@ import java.io.InputStreamReader;
 public class RecentNotesManager {
     File file;
     Context context;
-    public static final String TAG  = "RecentNotesManager";
+    public static final String TAG = "RecentNotesManager";
     public static final String FILENAME = "recentNotes.txt";
     public static final int CAPACITY = 5;
     LRUCache<String> cache;
     private static final RecentNotesManager instance = new RecentNotesManager();
+
     /**
      * Implementation of the generic LRU Cache made specifically for recent note managing
+     *
      * @class Singleton that manages recent notes
      */
-    public RecentNotesManager() { }
+    public RecentNotesManager() {
+    }
 
     //This should only be done once
     public void initialize(Context context) {
@@ -48,7 +51,7 @@ public class RecentNotesManager {
             FileInputStream inputStream = new FileInputStream(file);
             BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
             String noteUri = reader.readLine();
-            while(noteUri != null) {
+            while (noteUri != null) {
                 cache.update(noteUri);
                 noteUri = reader.readLine();
             }
@@ -71,18 +74,18 @@ public class RecentNotesManager {
     }
 
     public void save() {
-            try (FileOutputStream fos = context.openFileOutput(FILENAME, Context.MODE_PRIVATE)) {
-                for (LRUCache<String> it = cache; it.hasNext(); ) {
-                    String noteUri = it.next();
-                    Log.d(TAG, "Saving note with uri: " + noteUri);
-                    fos.write(noteUri.getBytes());
-                    fos.write("\n".getBytes());
-                }
-            } catch (FileNotFoundException e) {
-                e.printStackTrace();
-            } catch (IOException e) {
-                e.printStackTrace();
+        try (FileOutputStream fos = context.openFileOutput(FILENAME, Context.MODE_PRIVATE)) {
+            for (LRUCache<String> it = cache; it.hasNext(); ) {
+                String noteUri = it.next();
+                Log.d(TAG, "Saving note with uri: " + noteUri);
+                fos.write(noteUri.getBytes());
+                fos.write("\n".getBytes());
             }
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
         }
+    }
 }
 
