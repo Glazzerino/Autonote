@@ -1,10 +1,13 @@
 package com.fbu.autonote.activities;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.os.Bundle;
+import android.transition.Explode;
 import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.animation.Interpolator;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -49,8 +52,8 @@ public class NotesExploreActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        setAnimations();
         context = this;
-
         notFavoritePointers = new HashSet<>();
         setContentView(R.layout.activity_notes_explore);
         userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
@@ -91,11 +94,17 @@ public class NotesExploreActivity extends AppCompatActivity {
         });
     }
 
+    private void setAnimations() {
+        Explode explode = new Explode();
+        explode.setDuration(500);
+        getWindow().setEnterTransition(explode);
+    }
 
     //loads notes from firebase onto the adapter's container
     private void populateAdapterContainer() {
         database = database.child(topic);
         ValueEventListener valueEventListener = new ValueEventListener() {
+            @SuppressLint("RestrictedApi")
             @Override
             public void onDataChange(@NonNull @NotNull DataSnapshot snapshot) {
                 notesExploreAdapter.clearContainer();

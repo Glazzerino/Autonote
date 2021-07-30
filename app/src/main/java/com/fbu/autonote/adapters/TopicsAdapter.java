@@ -1,5 +1,7 @@
 package com.fbu.autonote.adapters;
 
+import android.app.Activity;
+import android.app.ActivityOptions;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Color;
@@ -86,7 +88,8 @@ public class TopicsAdapter extends RecyclerView.Adapter<TopicsAdapter.ViewHolder
         private void goToNoteExploreAct(String topic) {
             Intent intent = new Intent(context, NotesExploreActivity.class);
             intent.putExtra("topic", topic);
-            context.startActivity(intent);
+            ActivityOptions options = ActivityOptions.makeSceneTransitionAnimation((Activity) context);
+            context.startActivity(intent, options.toBundle());
         }
     }
 }
