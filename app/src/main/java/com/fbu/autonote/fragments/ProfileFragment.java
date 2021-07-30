@@ -47,7 +47,6 @@ public class ProfileFragment extends Fragment {
     RecyclerView rvProfileNotes;
     NotesExploreAdapter notesAdapter;
     TextView tvDisplayName;
-    Favorites favorites;
     DatabaseReference databaseReference;
     Context context;
     List<Note> recentNotes;
@@ -91,8 +90,7 @@ public class ProfileFragment extends Fragment {
         references = new ArrayList<>();
         rvProfileNotes = view.findViewById(R.id.rvProfileNotes);
         context = getContext();
-        favorites = new Favorites(getContext());
-        notesAdapter = new NotesExploreAdapter(getContext(), favorites);
+        notesAdapter = new NotesExploreAdapter(getContext());
         linearLayoutManager = new LinearLayoutManager(getContext());
         rvProfileNotes.setLayoutManager(linearLayoutManager);
         rvProfileNotes.setAdapter(notesAdapter);
@@ -136,7 +134,7 @@ public class ProfileFragment extends Fragment {
     }
 
     private void populateWithFavorites() {
-        List<String> paths = favorites.getAll();
+        List<String> paths = Favorites.getInstance().getAll();
         loadAdapterWithNotePaths(paths);
     }
 

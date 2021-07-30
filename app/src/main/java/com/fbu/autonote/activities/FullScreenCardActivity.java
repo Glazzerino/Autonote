@@ -9,8 +9,12 @@ import androidx.fragment.app.FragmentManager;
 
 import android.content.Context;
 import android.os.Bundle;
+import android.transition.Explode;
+import android.transition.Slide;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.View;
+import android.view.Window;
 import android.widget.ImageButton;
 
 import com.fbu.autonote.R;
@@ -45,6 +49,7 @@ public class FullScreenCardActivity extends AppCompatActivity implements Confirm
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        setAnimations();
         setContentView(R.layout.activity_full_screen_card);
         String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
         databaseReference = FirebaseDatabase.getInstance().getReference().child(userId);
@@ -53,8 +58,8 @@ public class FullScreenCardActivity extends AppCompatActivity implements Confirm
         toggleGroup = findViewById(R.id.toggleGroupFullCard);
         fragmentManager = getSupportFragmentManager();
         context = this;
-        note = getIntent().getParcelableExtra("note");
 
+        note = getIntent().getParcelableExtra("note");
         if (note == null) {
             Log.e(TAG, "Error: Note not found within intent");
         }
@@ -111,6 +116,11 @@ public class FullScreenCardActivity extends AppCompatActivity implements Confirm
                 finish();
             }
         });
+    }
+
+    private void setAnimations() {
+        getWindow().setEnterTransition(new Slide(Gravity.RIGHT));
+        getWindow().setExitTransition(new Slide(Gravity.LEFT));
     }
 
     @Override

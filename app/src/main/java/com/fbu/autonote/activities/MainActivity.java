@@ -23,6 +23,7 @@ import com.fbu.autonote.fragments.ProfileFragment;
 import com.fbu.autonote.fragments.TopicSelectionFragment;
 import com.fbu.autonote.fragments.ScanResultsFragment;
 import com.fbu.autonote.models.Note;
+import com.fbu.autonote.utilities.Favorites;
 import com.fbu.autonote.utilities.RecentNotesManager;
 import com.fbu.autonote.utilities.uClassifyRequestMode;
 import com.geniusscansdk.core.GeniusScanSDK;
@@ -115,6 +116,9 @@ public class MainActivity extends AppCompatActivity {
         } catch (LicenseException exception) {
             Log.e("MainActivity", exception.toString());
         }
+
+        //Initialize Favorites singleton
+        Favorites.getInstance().initialize(this);
 
         //Set bottom menu button actions
         //TODO: PROFILE VIEW

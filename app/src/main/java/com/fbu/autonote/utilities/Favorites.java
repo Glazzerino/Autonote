@@ -24,13 +24,19 @@ public class Favorites {
     Context context;
     public static final float LOAD_FACTOR = 0.8f;
     HashMap<String, Set<String>> mainContainer;
-
     private static final String FILENAME = "favorites.txt";
     public static final String TAG = "Favorites";
+    public static Favorites instance = new Favorites();
 
-    public Favorites(Context context) {
-        mainContainer = new HashMap<>(20, LOAD_FACTOR);
-        this.context = context;
+    public Favorites() { }
+
+    public static Favorites getInstance() {
+        return instance;
+    }
+
+    public void initialize(Context context) {
+        instance.mainContainer = new HashMap<>(20, LOAD_FACTOR);
+        instance.context = context;
         try {
             loadData();
         } catch (IOException e) {

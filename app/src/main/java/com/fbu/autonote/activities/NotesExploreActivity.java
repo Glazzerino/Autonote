@@ -42,7 +42,6 @@ public class NotesExploreActivity extends AppCompatActivity {
     LinearLayoutManager linearLayoutManager;
     String topic;
     Context context;
-    Favorites favoritesManager;
     MaterialButtonToggleGroup toggleGroup;
     Set<Integer> notFavoritePointers;
     public static final String TAG = "NotesExploreActivity";
@@ -51,7 +50,7 @@ public class NotesExploreActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         context = this;
-        favoritesManager = new Favorites(context);
+
         notFavoritePointers = new HashSet<>();
         setContentView(R.layout.activity_notes_explore);
         userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
@@ -63,7 +62,6 @@ public class NotesExploreActivity extends AppCompatActivity {
         toggleGroup = findViewById(R.id.toggleGroupNotes);
 
         notesExploreAdapter = new NotesExploreAdapter(this,
-                favoritesManager,
                 topic);
         linearLayoutManager = new LinearLayoutManager(this,
                 LinearLayoutManager.VERTICAL,

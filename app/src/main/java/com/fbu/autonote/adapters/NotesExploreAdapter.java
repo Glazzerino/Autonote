@@ -1,5 +1,7 @@
 package com.fbu.autonote.adapters;
 
+import android.app.Activity;
+import android.app.ActivityOptions;
 import android.content.Context;
 import android.content.Intent;
 import android.util.Log;
@@ -37,26 +39,23 @@ public class NotesExploreAdapter extends RecyclerView.Adapter<NotesExploreAdapte
     Context context;
     FirebaseStorage firebaseStorage;
     String userId;
-    Favorites favoritesManager;
     String topic;
     boolean showFavoritesOnly;
 
     //10MB
     public static final long BYTE_DOWNLOAD_LIMIT = 10000000;
-    public NotesExploreAdapter(Context context, Favorites favoritesManager, String topic) {
+    public NotesExploreAdapter(Context context, String topic) {
         this.context = context;
         notes = new ArrayList<>();
         firebaseStorage = FirebaseStorage.getInstance();
         userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
-        this.favoritesManager = favoritesManager;
         this.topic = topic;
     }
-    public NotesExploreAdapter(Context context, Favorites favoritesManager) {
+    public NotesExploreAdapter(Context context) {
         this.context = context;
         notes = new ArrayList<>();
         firebaseStorage = FirebaseStorage.getInstance();
         userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
-        this.favoritesManager = favoritesManager;
     }
 
     public void overrideContainer(List<Note> newContainer) {
@@ -75,6 +74,7 @@ public class NotesExploreAdapter extends RecyclerView.Adapter<NotesExploreAdapte
     @Override
     public void onBindViewHolder(@NonNull @NotNull NotesExploreAdapter.ViewHolder holder, int position) {
         Note note = notes.get(position);
+        Favorites favoritesManager = Favorites.getInstance();
         if (!favoritesManager.checkIfFavorite(note.getUrl(), topic) && showFavoritesOnly) {
             holder.disableVisibility();
         } else {
@@ -106,7 +106,6 @@ public class NotesExploreAdapter extends RecyclerView.Adapter<NotesExploreAdapte
         ImageButton btnFav;
         FirebaseStorage firebaseStorage;
         CircularProgressDrawable progressDrawable;
-        Favorites favorites;
         String topic;
         public boolean isFavorite;
 
@@ -122,12 +121,12 @@ public class NotesExploreAdapter extends RecyclerView.Adapter<NotesExploreAdapte
             progressDrawable.setCenterRadius(40f);
             progressDrawable.setStrokeWidth(5f);
             progressDrawable.start();
-            this.favorites = NotesExploreAdapter.this.favoritesManager;
             topic = NotesExploreAdapter.this.topic;
         }
 
         protected void bind(Note note) {
             String keywords = new String();
+            Favorites favorites = Favorites.getInstance();
             isFavorite = favorites.checkIfFavorite(note.getUrl(), note.getTopic());
             if (showFavoritesOnly && !isFavorite) {
                 disableVisibility();
@@ -165,7 +164,9 @@ public class NotesExploreAdapter extends RecyclerView.Adapter<NotesExploreAdapte
                     RecentNotesManager.getInstance().registerUse(note);
                     Intent intent = new Intent(context, FullScreenCardActivity.class);
                     intent.putExtra("note", note);
-                    context.startActivity(intent);
+                    context.startActivity(intent,
+                            ActivityOptions.makeSceneTransitionAnimation((Activity) context).toBundle());
+
                 }
             });
         }
