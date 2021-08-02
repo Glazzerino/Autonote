@@ -75,7 +75,8 @@
                     android:layout_height="40dp"
                     android:layout_weight="1"
                     android:background="@android:color/transparent"
-                    app:srcCompat="@drawable/ic_baseline_star_outline_24" />
+                    app:srcCompat="@drawable/ic_baseline_star_outline_24"
+                    android:stateListAnimator="@animator/scale"/>
 
             </LinearLayout>
 

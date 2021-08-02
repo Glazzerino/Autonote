@@ -73,7 +73,8 @@
                         android:adjustViewBounds="true"
                         android:background="@android:color/transparent"
                         android:scaleType="fitCenter"
-                        card_view:srcCompat="@drawable/ic_baseline_star_outline_24" />
+                        card_view:srcCompat="@drawable/ic_baseline_star_outline_24"
+                        android:stateListAnimator="@animator/scale"/>
                 </androidx.appcompat.widget.LinearLayoutCompat>
             </androidx.appcompat.widget.LinearLayoutCompat>
         </LinearLayout>
