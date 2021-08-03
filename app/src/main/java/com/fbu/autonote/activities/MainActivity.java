@@ -69,6 +69,9 @@ import java.util.List;
 import java.util.Random;
 
 import es.dmoral.toasty.Toasty;
+import me.ibrahimsn.lib.OnItemReselectedListener;
+import me.ibrahimsn.lib.OnItemSelectedListener;
+import me.ibrahimsn.lib.SmoothBottomBar;
 import okhttp3.Call;
 import okhttp3.Callback;
 import okhttp3.MediaType;
@@ -79,7 +82,6 @@ import okhttp3.Response;
 
 public class MainActivity extends AppCompatActivity {
     public static final String TAG = "MainActivity";
-    BottomNavigationView bottomMenu;
     Fragment fragment;
     FragmentManager fragmentManager;
     Context context;
@@ -90,6 +92,7 @@ public class MainActivity extends AppCompatActivity {
     String userId;
     StorageReference imageStorage;
     OkHttpClient client;
+    SmoothBottomBar bottomBar;
 
     public static final MediaType JSON
             = MediaType.get("application/json; charset=utf-8");
@@ -98,9 +101,9 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        bottomMenu = findViewById(R.id.menuBottomNav);
         fragmentManager = getSupportFragmentManager();
         context = this;
+        bottomBar = findViewById(R.id.bottomBar);
         authManager = FirebaseAuth.getInstance();
         userId = authManager.getCurrentUser().getUid();
         databaseReference = FirebaseDatabase.getInstance().getReference(userId);
@@ -123,28 +126,29 @@ public class MainActivity extends AppCompatActivity {
         //Set bottom menu button actions
         //TODO: PROFILE VIEW
         //TODO: NOTES VIEW
-        bottomMenu.setOnItemSelectedListener(new NavigationBarView.OnItemSelectedListener() {
+
+        bottomBar.setOnItemSelectedListener(new OnItemSelectedListener() {
             @Override
-            public boolean onNavigationItemSelected(@NonNull @NotNull MenuItem item) {
-                switch (item.getItemId()) {
-                    case R.id.itemNotes:
+            public boolean onItemSelect(int i) {
+                switch (i) {
+                    case 0:
                         fragment = TopicSelectionFragment.newInstance(context);
                         break;
-                    case R.id.itemScan:
-                        /**
-                         * Due to GeniusSDK's dependence on onActivityResult, fragment assigning
-                         * gets done from withing initScanner()
-                         **/
+                    case 1:
                         initScanner();
                         break;
-                    case R.id.itemProfile:
+                    case 2:
                         fragment = ProfileFragment.newInstance();
+                        break;
+                    default:
+                        Log.e(TAG, "Error; menu item index out of bounds");
                         break;
                 }
                 startFragment();
                 return true;
             }
         });
+
         fragment = TopicSelectionFragment.newInstance(this);
         startFragment();
     }
