@@ -90,7 +90,11 @@ public class FullScreenCardActivity extends AppCompatActivity implements Confirm
         btnFavNote.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Favorites.getInstance().addFav(note);
+                Favorites favorites = Favorites.getInstance();
+                if (favorites.checkIfFavorite(note))
+                    favorites.remove(note);
+                else
+                    favorites.addFav(note);
                 autoToggleFavBtn();
             }
         });

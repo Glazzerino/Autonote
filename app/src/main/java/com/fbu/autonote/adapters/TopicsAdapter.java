@@ -15,6 +15,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.fbu.autonote.R;
 import com.fbu.autonote.activities.NotesExploreActivity;
+import com.google.android.material.button.MaterialButton;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -61,7 +62,7 @@ public class TopicsAdapter extends RecyclerView.Adapter<TopicsAdapter.ViewHolder
     }
 
     public class ViewHolder extends RecyclerView.ViewHolder {
-        AppCompatButton btnTopicBtn;
+        MaterialButton btnTopicBtn;
 
         public ViewHolder(@NonNull @NotNull View itemView) {
             super(itemView);

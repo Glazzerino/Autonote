@@ -123,10 +123,6 @@ public class MainActivity extends AppCompatActivity {
         //Initialize Favorites singleton
         Favorites.getInstance().initialize(this);
 
-        //Set bottom menu button actions
-        //TODO: PROFILE VIEW
-        //TODO: NOTES VIEW
-
         bottomBar.setOnItemSelectedListener(new OnItemSelectedListener() {
             @Override
             public boolean onItemSelect(int i) {

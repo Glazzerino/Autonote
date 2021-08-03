@@ -46,7 +46,6 @@ public class ProfileFragment extends Fragment {
     RecyclerView rvProfileNotes;
     NotesExploreAdapter notesAdapter;
     TextView tvDisplayName;
-    DatabaseReference databaseReference;
     Context context;
     List<Note> recentNotes;
     List<DatabaseReference> references;
@@ -109,12 +108,10 @@ public class ProfileFragment extends Fragment {
                         break;
                 }
             }
-
             //Necessary
             @Override
             public void onTabUnselected(TabLayout.Tab tab) {
             }
-
             @Override
             public void onTabReselected(TabLayout.Tab tab) {
             }
