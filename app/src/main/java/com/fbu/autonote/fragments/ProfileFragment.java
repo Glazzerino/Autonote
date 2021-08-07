@@ -28,8 +28,10 @@ import com.google.android.material.tabs.TabItem;
 import com.google.android.material.tabs.TabLayout;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -45,6 +47,7 @@ public class ProfileFragment extends Fragment {
     TabItem tabFavorites;
     RecyclerView rvProfileNotes;
     NotesExploreAdapter notesAdapter;
+    TextView tvNoteCount;
     TextView tvDisplayName;
     Context context;
     List<Note> recentNotes;
@@ -52,6 +55,8 @@ public class ProfileFragment extends Fragment {
     LinearLayoutManager linearLayoutManager;
     LRUCache<String> cache;
     ImageButton btnLogout;
+    TextView tvTopicCount;
+    DatabaseReference userSpace;
     public static final String TAG = "ProfileFragment";
 
     public ProfileFragment() {
@@ -87,6 +92,7 @@ public class ProfileFragment extends Fragment {
         references = new ArrayList<>();
         rvProfileNotes = view.findViewById(R.id.rvProfileNotes);
         context = getContext();
+        tvTopicCount = view.findViewById(R.id.tvTopicsCount);
         notesAdapter = new NotesExploreAdapter(getContext());
         linearLayoutManager = new LinearLayoutManager(getContext());
         rvProfileNotes.setLayoutManager(linearLayoutManager);
@@ -94,8 +100,11 @@ public class ProfileFragment extends Fragment {
         btnLogout = view.findViewById(R.id.btnLogout);
         tvDisplayName = view.findViewById(R.id.tvDisplayName);
         tvDisplayName.setText(FirebaseAuth.getInstance().getCurrentUser().getDisplayName());
+        tvNoteCount = view.findViewById(R.id.tvNoteCount);
         //Default to recent notes
         populateWithRecent();
+        String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
+        userSpace = FirebaseDatabase.getInstance().getReference(userId);
         tabLayout.addOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
             @Override
             public void onTabSelected(TabLayout.Tab tab) {
@@ -130,6 +139,7 @@ public class ProfileFragment extends Fragment {
                 getActivity().finish();
             }
         });
+        fetchStats();
     }
 
     private void populateWithFavorites() {
@@ -170,5 +180,30 @@ public class ProfileFragment extends Fragment {
             paths.add(it.next());
         }
         loadAdapterWithNotePaths(paths);
+    }
+
+    //get data again since deletion could have happened inside the FullCardNote fragment
+    @Override
+    public void onResume() {
+        super.onResume();
+        fetchStats();
+    }
+
+    //Get note and topic count
+    private void fetchStats() {
+        userSpace.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull @NotNull DataSnapshot snapshot) {
+                int noteCount = 0;
+                tvTopicCount.setText("Topics: " + snapshot.getChildrenCount());
+                for (DataSnapshot topic : snapshot.getChildren()) {
+                    noteCount += topic.getChildrenCount();
+                }
+                tvNoteCount.setText("Notes: " + String.valueOf(noteCount));
+            }
+            @Override
+            public void onCancelled(@NonNull @NotNull DatabaseError error) {
+            }
+        });
     }
 }

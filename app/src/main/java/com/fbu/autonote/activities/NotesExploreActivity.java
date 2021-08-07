@@ -65,6 +65,7 @@ public class NotesExploreActivity extends AppCompatActivity {
                 false);
         rvNotes.setAdapter(notesExploreAdapter);
         rvNotes.setLayoutManager(linearLayoutManager);
+
         populateAdapterContainer();
 
         toggleGroup.addOnButtonCheckedListener(new MaterialButtonToggleGroup.OnButtonCheckedListener() {
@@ -87,6 +88,7 @@ public class NotesExploreActivity extends AppCompatActivity {
             }
         });
     }
+
 
     private void setAnimations() {
         Explode explode = new Explode();

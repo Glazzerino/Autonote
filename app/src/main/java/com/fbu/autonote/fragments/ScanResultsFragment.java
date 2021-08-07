@@ -57,7 +57,6 @@ public class ScanResultsFragment extends Fragment {
         Log.d(TAG, "SCANS LEN: " + scans.size());
     }
 
-
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {

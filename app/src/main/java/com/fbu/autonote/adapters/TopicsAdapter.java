@@ -8,6 +8,8 @@ import android.graphics.Color;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.LinearLayout;
+import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.widget.AppCompatButton;
@@ -63,11 +65,14 @@ public class TopicsAdapter extends RecyclerView.Adapter<TopicsAdapter.ViewHolder
 
     public class ViewHolder extends RecyclerView.ViewHolder {
         MaterialButton btnTopicBtn;
+        LinearLayout topicLayout;
+        TextView tvTopicLabel;
 
         public ViewHolder(@NonNull @NotNull View itemView) {
             super(itemView);
-            btnTopicBtn = itemView.findViewById(R.id.btnTopicBtn);
-            btnTopicBtn.setOnClickListener(new View.OnClickListener() {
+            topicLayout = itemView.findViewById(R.id.topicLinearLayout);
+            tvTopicLabel = itemView.findViewById(R.id.tvTopicLabel);
+            topicLayout.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
                     int position = getAdapterPosition();
@@ -80,8 +85,8 @@ public class TopicsAdapter extends RecyclerView.Adapter<TopicsAdapter.ViewHolder
             //Get color code by string hash
             String buttonColor = String.format("#%X", topicStr.hashCode());
             int colorInt = Color.parseColor(buttonColor);
-            btnTopicBtn.setBackgroundColor(colorInt);
-            btnTopicBtn.setText(topicStr);
+            topicLayout.setBackgroundColor(colorInt);
+            tvTopicLabel.setText(topicStr);
         }
 
         private void goToNoteExploreAct(String topic) {

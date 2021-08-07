@@ -9,18 +9,16 @@ public class GetListOfKeywordsString {
      * @param numberOfWords maximum number of words in string
      * @return string with concatenated keywords
      */
+    public static int MAX = 7;
     public static String getString(List<String> keywordsList, int numberOfWords) {
-        int counter = 0;
-        String keywords = "";
-        for (String keyword : keywordsList) {
-            keywords += keyword;
-            if (counter++ > numberOfWords) {
-                keywords += ".";
-                break;
-            } else {
-                keywords += ", ";
+        String concatenatedKeywords = "";
+
+        for (int i=0; i<numberOfWords; i++) {
+            concatenatedKeywords += keywordsList.get(i);
+            if (i != numberOfWords-1) {
+                concatenatedKeywords += ", ";
             }
         }
-        return keywords;
+        return concatenatedKeywords;
     }
 }

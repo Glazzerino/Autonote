@@ -1,14 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/topicLinearLayout"
     android:layout_width="match_parent"
     android:layout_height="100dp"
     android:orientation="vertical">
 
-    <com.google.android.material.button.MaterialButton
-        android:id="@+id/btnTopicBtn"
+    <TextView
+        android:id="@+id/tvTopicLabel"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:text="Topic"
-        android:textColor="@color/white_powder"
-        android:textSize="15sp" />
+        android:layout_gravity="center"
+        android:gravity="center"
+        android:text="Topic name"
+        android:textAlignment="gravity"
+        android:textSize="20sp"
+        android:textStyle="bold" />
 </LinearLayout>
